@@ -49,18 +49,31 @@ if "Origem" in df.columns:
     st.subheader("Top 15 - Número de OS por Frota")
     st.altair_chart(chart_os, use_container_width=True)
 
-    # Gráfico - Tempo de Permanência por Frota
-    tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().sort_values(ascending=False).head(15)
-    df_tempo = tempo_por_frota.reset_index()
-    df_tempo.columns = ["Frota", "Tempo (h)"]
+    # Gráfico - Tempo de Permanência por Frota (com cor verde e rótulo em cima)
+tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().sort_values(ascending=False).head(15)
+df_tempo = tempo_por_frota.reset_index()
+df_tempo.columns = ["Frota", "Tempo (h)"]
 
-    chart_tempo = alt.Chart(df_tempo).mark_bar().encode(
-        x=alt.X("Frota:N", sort="-y"),
-        y="Tempo (h):Q"
-    ).properties(width=700)
+bars = alt.Chart(df_tempo).mark_bar(color="green").encode(
+    x=alt.X("Frota:N", sort="-y"),
+    y="Tempo (h):Q"
+)
 
-    st.subheader("Top 15 - Tempo Total de Permanência por Frota (h)")
-    st.altair_chart(chart_tempo, use_container_width=True)
+text = alt.Chart(df_tempo).mark_text(
+    align="center",
+    baseline="bottom",
+    dy=-5,
+    fontSize=12
+).encode(
+    x="Frota:N",
+    y="Tempo (h):Q",
+    text=alt.Text("Tempo (h):Q", format=".0f")
+)
+
+chart_tempo = (bars + text).properties(width=700)
+
+st.subheader("Top 15 - Tempo Total de Permanência por Frota (h)")
+st.altair_chart(chart_tempo, use_container_width=True)
 
     # Gráfico de Pareto - Tempo por Tipo de Falha
     if "Causa manutenção" in df_filtrado.columns:
