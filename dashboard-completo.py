@@ -24,16 +24,41 @@ if "Origem" in df.columns:
     st.subheader(f"Tipo selecionado: {origem_selecionada}")
 
     if "Causa manutenção" in df.columns:
-        tipo_falha = df_filtrado["Causa manutenção"].value_counts().sort_values(ascending=False)
-        st.bar_chart(tipo_falha, use_container_width=True)
+       tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(15)
+        df_falha = tipo_falha.reset_index()
+        df_falha.columns = ["Tipo de Falha", "Quantidade"]
 
-    os_por_frota = df_filtrado["Número de frota"].value_counts().sort_values(ascending=False).head(15)
+       chart_falha = alt.Chart(df_falha).mark_bar().encode(
+            x=alt.X("Tipo de Falha:N", sort="-y"),
+            y="Quantidade:Q"
+    ).properties(width=700)
+
+st.altair_chart(chart_falha, use_container_width=True)
+
+    os_por_frota = df_filtrado["Número de frota"].value_counts().head(15)
+    df_os = os_por_frota.reset_index()
+    df_os.columns = ["Frota", "OS"]
+
+    chart_os = alt.Chart(df_os).mark_bar().encode(
+        x=alt.X("Frota:N", sort='-y'),
+        y="OS:Q"
+    ).properties(width=700)
+
+    st.altair_chart(chart_os, use_container_width=True)
     st.subheader("Top 15 - Número de OS por Frota")
-    st.bar_chart(os_por_frota, use_container_width=True)
+    
 
     tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().sort_values(ascending=False).head(15)
-    st.subheader("Top 15 - Tempo Total de Permanência por Frota (h)")
-    st.bar_chart(tempo_por_frota, use_container_width=True)
+df_tempo = tempo_por_frota.reset_index()
+df_tempo.columns = ["Frota", "Tempo (h)"]
+
+chart_tempo = alt.Chart(df_tempo).mark_bar().encode(
+    x=alt.X("Frota:N", sort="-y"),
+    y="Tempo (h):Q"
+).properties(width=700)
+
+st.altair_chart(chart_tempo, use_container_width=True)
+
 
     st.subheader("Gráfico de Pareto - Tempo por Tipo de Falha")
     if "Causa manutenção" in df.columns:
@@ -41,7 +66,7 @@ if "Origem" in df.columns:
         df_pareto = df_pareto[df_pareto > 0]
         df_pareto_pct = df_pareto.cumsum() / df_pareto.sum()
 
-        import matplotlib.pyplot as plt
+        import altair as alt
         fig, ax1 = plt.subplots(figsize=(10, 5))
 
         ax1.bar(df_pareto.index, df_pareto.values, color='blue')
