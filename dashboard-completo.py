@@ -44,8 +44,8 @@ if "Origem" in df.columns:
         import matplotlib.pyplot as plt
         fig, ax1 = plt.subplots(figsize=(10, 5))
 
-        ax1.bar(df_pareto.index, df_pareto.values, color='green')
-        ax1.set_ylabel("Tempo Total (h)", color='green')
+        ax1.bar(df_pareto.index, df_pareto.values, color='blue')
+        ax1.set_ylabel("Tempo Total (h)", color='blue')
         ax1.tick_params(axis='x', rotation=45)
 
         ax2 = ax1.twinx()
