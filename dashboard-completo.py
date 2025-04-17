@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -14,6 +13,26 @@ def carregar_dados():
         df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
     return df
 
+def plotar_barra_rotulo(df, x_col, y_col, titulo, cor="green"):
+    df[x_col] = df[x_col].astype(str)
+    df[x_col] = pd.Categorical(df[x_col], categories=df[x_col], ordered=True)
+
+    barra = alt.Chart(df).mark_bar(color=cor).encode(
+        x=alt.X(f"{x_col}:N"),
+        y=alt.Y(f"{y_col}:Q")
+    )
+
+    texto = alt.Chart(df).mark_text(
+        align="center", baseline="bottom", dy=-5, fontSize=12
+    ).encode(
+        x=f"{x_col}:N",
+        y=f"{y_col}:Q",
+        text=alt.Text(f"{y_col}:Q", format=".0f")
+    )
+
+    st.subheader(titulo)
+    st.altair_chart(barra + texto, use_container_width=True)
+
 df = carregar_dados()
 
 if "Origem" in df.columns:
@@ -27,71 +46,20 @@ if "Origem" in df.columns:
     if "Causa manutenção" in df_filtrado.columns:
         tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(15).reset_index()
         tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
-        tipo_falha["Tipo de Falha"] = tipo_falha["Tipo de Falha"].astype(str)
-        tipo_falha["Tipo de Falha"] = pd.Categorical(tipo_falha["Tipo de Falha"], categories=tipo_falha["Tipo de Falha"], ordered=True)
+        plotar_barra_rotulo(tipo_falha, "Tipo de Falha", "Quantidade", "Top 15 - Tipos de Falha")
 
-        bars_falha = alt.Chart(tipo_falha).mark_bar(color="green").encode(
-            x=alt.X("Tipo de Falha:N"),
-            y="Quantidade:Q"
-        )
-
-        labels_falha = alt.Chart(tipo_falha).mark_text(
-            align="center", baseline="bottom", dy=-5, fontSize=12
-        ).encode(
-            x="Tipo de Falha:N",
-            y="Quantidade:Q",
-            text=alt.Text("Quantidade:Q", format=".0f")
-        )
-
-        st.subheader("Top 15 - Tipos de Falha")
-        st.altair_chart(bars_falha + labels_falha, use_container_width=True)
-
-    # Número de OS por Frota
+    # OS por Frota
     os_por_frota = df_filtrado["Número de frota"].value_counts().head(15).reset_index()
     os_por_frota.columns = ["Frota", "OS"]
-    os_por_frota["Frota"] = os_por_frota["Frota"].astype(str)
-    os_por_frota["Frota"] = pd.Categorical(os_por_frota["Frota"], categories=os_por_frota["Frota"], ordered=True)
+    plotar_barra_rotulo(os_por_frota, "Frota", "OS", "Top 15 - Número de OS por Frota")
 
-    bars_os = alt.Chart(os_por_frota).mark_bar(color="green").encode(
-        x=alt.X("Frota:N"),
-        y="OS:Q"
-    )
-
-    labels_os = alt.Chart(os_por_frota).mark_text(
-        align="center", baseline="bottom", dy=-5, fontSize=12
-    ).encode(
-        x="Frota:N",
-        y="OS:Q",
-        text=alt.Text("OS:Q", format=".0f")
-    )
-
-    st.subheader("Top 15 - Número de OS por Frota")
-    st.altair_chart(bars_os + labels_os, use_container_width=True)
-
-    # Tempo de Permanência por Frota
+    # Tempo por Frota
     tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
     tempo_por_frota.columns = ["Frota", "Tempo (h)"]
     tempo_por_frota = tempo_por_frota.sort_values("Tempo (h)", ascending=False).head(15)
-    tempo_por_frota["Frota"] = tempo_por_frota["Frota"].astype(str)
-    tempo_por_frota["Frota"] = pd.Categorical(tempo_por_frota["Frota"], categories=tempo_por_frota["Frota"], ordered=True)
+    plotar_barra_rotulo(tempo_por_frota, "Frota", "Tempo (h)", "Top 15 - Tempo Total de Permanência por Frota (h)")
 
-    bars_tempo = alt.Chart(tempo_por_frota).mark_bar(color="green").encode(
-        x=alt.X("Frota:N"),
-        y="Tempo (h):Q"
-    )
-
-    labels_tempo = alt.Chart(tempo_por_frota).mark_text(
-        align="center", baseline="bottom", dy=-5, fontSize=12
-    ).encode(
-        x="Frota:N",
-        y="Tempo (h):Q",
-        text=alt.Text("Tempo (h):Q", format=".0f")
-    )
-
-    st.subheader("Top 15 - Tempo Total de Permanência por Frota (h)")
-    st.altair_chart(bars_tempo + labels_tempo, use_container_width=True)
-
-    # Pareto
+    # Pareto - a corrigir na próxima etapa
     if "Causa manutenção" in df_filtrado.columns:
         df_pareto = df_filtrado.groupby("Causa manutenção")["Tempo de Permanência(h)"].sum().sort_values(ascending=False)
         df_pareto = df_pareto[df_pareto > 0].reset_index()
@@ -100,18 +68,18 @@ if "Origem" in df.columns:
         df_pareto["Tipo de Falha"] = pd.Categorical(df_pareto["Tipo de Falha"], categories=df_pareto["Tipo de Falha"], ordered=True)
         df_pareto["Acumulado (%)"] = df_pareto["Tempo"].cumsum() / df_pareto["Tempo"].sum()
 
-        bars_pareto = alt.Chart(df_pareto).mark_bar(color="green").encode(
+        bars = alt.Chart(df_pareto).mark_bar(color="green").encode(
             x=alt.X("Tipo de Falha:N"),
             y="Tempo:Q"
         )
 
-        linha_pareto = alt.Chart(df_pareto).mark_line(point=True, color="orange").encode(
+        linha = alt.Chart(df_pareto).mark_line(point=True, color="orange").encode(
             x="Tipo de Falha:N",
             y=alt.Y("Acumulado (%):Q", axis=alt.Axis(format='%'))
         )
 
         st.subheader("Gráfico de Pareto - Tempo por Tipo de Falha")
-        st.altair_chart(bars_pareto + linha_pareto, use_container_width=True)
+        st.altair_chart(bars + linha, use_container_width=True)
 
     # Tendência Mensal
     if "Ano/Mes" in df_filtrado.columns:
