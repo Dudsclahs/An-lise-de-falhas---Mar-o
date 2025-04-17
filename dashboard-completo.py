@@ -2,6 +2,19 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
+st.title("Dashboard de Manutenção - Campo, Interna e Terceiros")
+
+@st.cache_data
+def carregar_dados():
+    df = pd.read_excel("analise_manutencao_completa.xlsx", sheet_name="Consolidado")
+    df.columns = df.columns.str.strip()
+    if "Entrada" in df.columns:
+        df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
+        df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
+    return df
+
+df = carregar_dados()
+
 if "Origem" in df.columns:
     origens = df["Origem"].dropna().unique()
     origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", sorted(origens))
