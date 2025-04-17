@@ -9,7 +9,12 @@ st.title("Dashboard de Manutenção - Campo, Interna e Terceiros")
 @st.cache_data
 def carregar_dados():
     df = pd.read_excel("analise_manutencao_completa.xlsx", sheet_name="Consolidado")
+   df.columns = df.columns.str.strip()  # Remove espaços invisíveis
+if "Entrada" in df.columns:
     df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
+    df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
+else:
+    st.error("A coluna 'Entrada' não foi encontrada. Verifique os nomes das colunas no arquivo Excel.")
     df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
     return df
 
