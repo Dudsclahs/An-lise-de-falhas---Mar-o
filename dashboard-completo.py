@@ -1,54 +1,33 @@
-import streamlit as st
-import pandas as pd
+import altair as alt
 
-st.title("Dashboard de Manutenção - Campo, Interna e Terceiros")
+# Gráfico - Tipos de Falha
+tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(15)
+df_falha = tipo_falha.reset_index()
+df_falha.columns = ["Tipo de Falha", "Quantidade"]
 
-@st.cache_data
-def carregar_dados():
-    df = pd.read_excel("analise_manutencao_completa.xlsx", sheet_name="Consolidado")
-    df.columns = df.columns.str.strip()  # Remover espaços extras
-    if "Entrada" in df.columns:
-        df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
-        df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
-    else:
-        st.error("A coluna 'Entrada' não foi encontrada no arquivo Excel.")
-    return df
+chart_falha = alt.Chart(df_falha).mark_bar().encode(
+    x=alt.X("Tipo de Falha:N", sort="-y"),
+    y="Quantidade:Q"
+).properties(width=700)
 
-df = carregar_dados()
-
-if "Origem" in df.columns:
-    origens = df["Origem"].dropna().unique()
-    origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", sorted(origens))
-    df_filtrado = df[df["Origem"] == origem_selecionada]
-
-    st.subheader(f"Tipo selecionado: {origem_selecionada}")
-
-    if "Causa manutenção" in df.columns:
-       tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(15)
-        df_falha = tipo_falha.reset_index()
-        df_falha.columns = ["Tipo de Falha", "Quantidade"]
-
-       chart_falha = alt.Chart(df_falha).mark_bar().encode(
-            x=alt.X("Tipo de Falha:N", sort="-y"),
-            y="Quantidade:Q"
-    ).properties(width=700)
-
+st.subheader("Top 15 - Tipos de Falha")
 st.altair_chart(chart_falha, use_container_width=True)
 
-    os_por_frota = df_filtrado["Número de frota"].value_counts().head(15)
-    df_os = os_por_frota.reset_index()
-    df_os.columns = ["Frota", "OS"]
+# Gráfico - Número de OS por Frota
+os_por_frota = df_filtrado["Número de frota"].value_counts().head(15)
+df_os = os_por_frota.reset_index()
+df_os.columns = ["Frota", "OS"]
 
-    chart_os = alt.Chart(df_os).mark_bar().encode(
-        x=alt.X("Frota:N", sort='-y'),
-        y="OS:Q"
-    ).properties(width=700)
+chart_os = alt.Chart(df_os).mark_bar().encode(
+    x=alt.X("Frota:N", sort="-y"),
+    y="OS:Q"
+).properties(width=700)
 
-    st.altair_chart(chart_os, use_container_width=True)
-    st.subheader("Top 15 - Número de OS por Frota")
-    
+st.subheader("Top 15 - Número de OS por Frota")
+st.altair_chart(chart_os, use_container_width=True)
 
-    tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().sort_values(ascending=False).head(15)
+# Gráfico - Tempo de Permanência por Frota
+tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().sort_values(ascending=False).head(15)
 df_tempo = tempo_por_frota.reset_index()
 df_tempo.columns = ["Frota", "Tempo (h)"]
 
@@ -57,32 +36,37 @@ chart_tempo = alt.Chart(df_tempo).mark_bar().encode(
     y="Tempo (h):Q"
 ).properties(width=700)
 
+st.subheader("Top 15 - Tempo Total de Permanência por Frota (h)")
 st.altair_chart(chart_tempo, use_container_width=True)
 
+# Gráfico de Pareto - Tempo por Tipo de Falha
+df_pareto = df_filtrado.groupby("Causa manutenção")["Tempo de Permanência(h)"].sum().sort_values(ascending=False)
+df_pareto = df_pareto[df_pareto > 0].reset_index()
+df_pareto.columns = ["Tipo de Falha", "Tempo"]
+df_pareto["Acumulado (%)"] = df_pareto["Tempo"].cumsum() / df_pareto["Tempo"].sum()
 
-    st.subheader("Gráfico de Pareto - Tempo por Tipo de Falha")
-    if "Causa manutenção" in df.columns:
-        df_pareto = df_filtrado.groupby("Causa manutenção")["Tempo de Permanência(h)"].sum().sort_values(ascending=False)
-        df_pareto = df_pareto[df_pareto > 0]
-        df_pareto_pct = df_pareto.cumsum() / df_pareto.sum()
+chart_pareto = alt.Chart(df_pareto).mark_bar(color="green").encode(
+    x=alt.X("Tipo de Falha:N", sort="-y"),
+    y="Tempo:Q"
+)
 
-        import altair as alt
-        fig, ax1 = plt.subplots(figsize=(10, 5))
+linha_pareto = alt.Chart(df_pareto).mark_line(point=True, color="orange").encode(
+    x="Tipo de Falha:N",
+    y=alt.Y("Acumulado (%):Q", axis=alt.Axis(format='%'))
+)
 
-        ax1.bar(df_pareto.index, df_pareto.values, color='blue')
-        ax1.set_ylabel("Tempo Total (h)", color='blue')
-        ax1.tick_params(axis='x', rotation=45)
+st.subheader("Gráfico de Pareto - Tempo por Tipo de Falha")
+st.altair_chart(chart_pareto + linha_pareto, use_container_width=True)
 
-        ax2 = ax1.twinx()
-        ax2.plot(df_pareto.index, df_pareto_pct.values, color='black', marker='o')
-        ax2.set_ylabel("Acumulado (%)", color='black')
-        ax2.set_ylim(0, 1.05)
+# Gráfico - Tendência Mensal
+tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
+tendencia.columns = ["Ano/Mês", "Quantidade"]
 
-        st.pyplot(fig)
+chart_tendencia = alt.Chart(tendencia).mark_line(point=True).encode(
+    x="Ano/Mês:T",
+    y="Quantidade:Q"
+).properties(width=700)
 
-    if "Ano/Mes" in df.columns:
-        st.subheader("Tendência Mensal de Manutenções")
-        tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count()
-        st.line_chart(tendencia)
-else:
-    st.error("A coluna 'Origem' não foi encontrada. Verifique os dados.")
+st.subheader("Tendência Mensal de Manutenções")
+st.altair_chart(chart_tendencia, use_container_width=True)
+
