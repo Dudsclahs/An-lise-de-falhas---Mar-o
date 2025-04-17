@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -24,17 +25,17 @@ if "Origem" in df.columns:
 
     # Tipos de Falha
     if "Causa manutenção" in df_filtrado.columns:
-        tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(15)
-        df_falha = tipo_falha.reset_index()
-        df_falha.columns = ["Tipo de Falha", "Quantidade"]
-        df_falha["Tipo de Falha"] = df_falha["Tipo de Falha"].astype(str)
+        tipo_falha = df_filtrado["Causa manutenção"].value_counts().reset_index()
+        tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
+        tipo_falha = tipo_falha.sort_values("Quantidade", ascending=False).head(15)
+        tipo_falha["Tipo de Falha"] = tipo_falha["Tipo de Falha"].astype(str)
 
-        bars_falha = alt.Chart(df_falha).mark_bar(color="green").encode(
-            x=alt.X("Tipo de Falha:N", sort="-y"),
+        bars_falha = alt.Chart(tipo_falha).mark_bar(color="green").encode(
+            x=alt.X("Tipo de Falha:N", sort=tipo_falha["Tipo de Falha"].tolist()),
             y="Quantidade:Q"
         )
 
-        labels_falha = alt.Chart(df_falha).mark_text(
+        labels_falha = alt.Chart(tipo_falha).mark_text(
             align="center", baseline="bottom", dy=-5, fontSize=12
         ).encode(
             x="Tipo de Falha:N",
@@ -46,17 +47,17 @@ if "Origem" in df.columns:
         st.altair_chart(bars_falha + labels_falha, use_container_width=True)
 
     # Número de OS por Frota
-    os_por_frota = df_filtrado["Número de frota"].value_counts().head(15)
-    df_os = os_por_frota.reset_index()
-    df_os.columns = ["Frota", "OS"]
-    df_os["Frota"] = df_os["Frota"].astype(str)
+    os_por_frota = df_filtrado["Número de frota"].value_counts().reset_index()
+    os_por_frota.columns = ["Frota", "OS"]
+    os_por_frota = os_por_frota.sort_values("OS", ascending=False).head(15)
+    os_por_frota["Frota"] = os_por_frota["Frota"].astype(str)
 
-    bars_os = alt.Chart(df_os).mark_bar(color="green").encode(
-        x=alt.X("Frota:N", sort="-y"),
+    bars_os = alt.Chart(os_por_frota).mark_bar(color="green").encode(
+        x=alt.X("Frota:N", sort=os_por_frota["Frota"].tolist()),
         y="OS:Q"
     )
 
-    labels_os = alt.Chart(df_os).mark_text(
+    labels_os = alt.Chart(os_por_frota).mark_text(
         align="center", baseline="bottom", dy=-5, fontSize=12
     ).encode(
         x="Frota:N",
@@ -68,17 +69,17 @@ if "Origem" in df.columns:
     st.altair_chart(bars_os + labels_os, use_container_width=True)
 
     # Tempo de Permanência por Frota
-    tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().sort_values(ascending=False).head(15)
-    df_tempo = tempo_por_frota.reset_index()
-    df_tempo.columns = ["Frota", "Tempo (h)"]
-    df_tempo["Frota"] = df_tempo["Frota"].astype(str)
+    tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
+    tempo_por_frota.columns = ["Frota", "Tempo (h)"]
+    tempo_por_frota = tempo_por_frota.sort_values("Tempo (h)", ascending=False).head(15)
+    tempo_por_frota["Frota"] = tempo_por_frota["Frota"].astype(str)
 
-    bars_tempo = alt.Chart(df_tempo).mark_bar(color="green").encode(
-        x=alt.X("Frota:N", sort="-y"),
+    bars_tempo = alt.Chart(tempo_por_frota).mark_bar(color="green").encode(
+        x=alt.X("Frota:N", sort=tempo_por_frota["Frota"].tolist()),
         y="Tempo (h):Q"
     )
 
-    labels_tempo = alt.Chart(df_tempo).mark_text(
+    labels_tempo = alt.Chart(tempo_por_frota).mark_text(
         align="center", baseline="bottom", dy=-5, fontSize=12
     ).encode(
         x="Frota:N",
@@ -98,7 +99,7 @@ if "Origem" in df.columns:
         df_pareto["Acumulado (%)"] = df_pareto["Tempo"].cumsum() / df_pareto["Tempo"].sum()
 
         bars_pareto = alt.Chart(df_pareto).mark_bar(color="green").encode(
-            x=alt.X("Tipo de Falha:N", sort="-y"),
+            x=alt.X("Tipo de Falha:N", sort=df_pareto["Tipo de Falha"].tolist()),
             y="Tempo:Q"
         )
 
