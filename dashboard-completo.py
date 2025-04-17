@@ -49,8 +49,8 @@ if "Origem" in df.columns:
         ax1.tick_params(axis='x', rotation=45)
 
         ax2 = ax1.twinx()
-        ax2.plot(df_pareto.index, df_pareto_pct.values, color='orange', marker='o')
-        ax2.set_ylabel("Acumulado (%)", color='orange')
+        ax2.plot(df_pareto.index, df_pareto_pct.values, color='black', marker='o')
+        ax2.set_ylabel("Acumulado (%)", color='black')
         ax2.set_ylim(0, 1.05)
 
         st.pyplot(fig)
