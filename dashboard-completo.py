@@ -10,12 +10,17 @@ def carregar_dados():
     df = pd.read_excel("analise_manutencao_completa.xlsx", sheet_name="Consolidado")
     df.columns = df.columns.str.strip()
     df["Descrição do Trabalho / Observação (Ordem de serviço)"] = df["Descrição do Trabalho / Observação (Ordem de serviço)"].fillna("").str.lower()
-    df["Origem"] = df["Local manutenção"].str.upper().str.strip()
-    df["Origem"] = df["Origem"].replace({
-        "MANUTENÇÃO CAMPO": "CAMPO",
-        "MANUTENÇÃO INTERNA": "INTERNA",
-        "MANUTENÇÃO TERCEIRO": "TERCEIRO"
-    })
+    
+    # Verificar e criar coluna Origem
+    if "Local manutenção" in df.columns:
+        df["Origem"] = df["Local manutenção"].str.upper().str.strip()
+        df["Origem"] = df["Origem"].replace({
+            "MANUTENÇÃO CAMPO": "CAMPO",
+            "MANUTENÇÃO INTERNA": "INTERNA",
+            "MANUTENÇÃO TERCEIRO": "TERCEIRO"
+        })
+    else:
+        df["Origem"] = "NÃO INFORMADO"
     return df
 
 def classificar_componente(texto):
