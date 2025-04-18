@@ -97,18 +97,6 @@ agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
 
-# GRÁFICO 6
-if "Ano/Mes" in df_filtrado.columns:
-    st.subheader("Tendência Mensal de Manutenções")
-    tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
-    tendencia.columns = ["Ano/Mês", "Quantidade"]
-    chart_tendencia = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
-        x=alt.X("Ano/Mês:T", title="Ano/Mês"),
-        y="Quantidade:Q",
-        tooltip=["Ano/Mês", "Quantidade"]
-    ).properties(width=800, height=400)
-    st.altair_chart(chart_tendencia, use_container_width=True)
-
 # GRÁFICO 7
 if "Tipo de Frota" in df_filtrado.columns and not df_filtrado["Tipo de Frota"].dropna().empty:
     tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
@@ -127,5 +115,19 @@ if "Descrição da Frota" in df_filtrado.columns and not df_filtrado["Descriçã
 if "Tipo de Manutenção" in df_filtrado.columns and not df_filtrado["Tipo de Manutenção"].dropna().empty:
     tipo_manutencao = df_filtrado["Tipo de Manutenção"].value_counts().reset_index()
     tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
-    tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=True)
+    tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=False)
     plot_horizontal_bar(tipo_manutencao, "Ocorrências", "Tipo de Manutenção", ["Tipo de Manutenção", "Ocorrências"], "Distribuição por Tipo de Manutenção")
+
+# GRÁFICO 6
+if "Ano/Mes" in df_filtrado.columns:
+    st.subheader("Tendência Mensal de Manutenções")
+    tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
+    tendencia.columns = ["Ano/Mês", "Quantidade"]
+    chart_tendencia = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
+        x=alt.X("Ano/Mês:T", title="Ano/Mês"),
+        y="Quantidade:Q",
+        tooltip=["Ano/Mês", "Quantidade"]
+    ).properties(width=800, height=400)
+    st.altair_chart(chart_tendencia, use_container_width=True)
+
+
