@@ -56,7 +56,11 @@ df_filtrado = df[df["Origem"] == origem_selecionada]
 
 def plot_horizontal_bar(data, x_col, y_col, tooltip, titulo):
     chart = alt.Chart(data).mark_bar(color="green").encode(
-        y=alt.Y(f"{y_col}:N", sort="-x"),
+        y=alt.Y(
+            f"{y_col}:N",
+            sort="-x",
+            axis=alt.Axis(labelLimit=250, titleLimit=250)
+        ),
         x=alt.X(f"{x_col}:Q"),
         tooltip=tooltip
     ).properties(width=800, height=400)
@@ -129,7 +133,3 @@ if "Tipo de Manutenção" in df_filtrado.columns and not df_filtrado["Tipo de Ma
     tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
     tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=False)
     plot_horizontal_bar(tipo_manutencao, "Ocorrências", "Tipo de Manutenção", ["Tipo de Manutenção", "Ocorrências"], "Distribuição por Tipo de Manutenção")
-
-
-
-
