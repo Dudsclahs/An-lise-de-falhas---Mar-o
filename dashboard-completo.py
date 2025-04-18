@@ -108,12 +108,18 @@ if "Ano/Mes" in df_filtrado.columns:
     ).properties(width=800, height=400)
     st.altair_chart(chart_tendencia, use_container_width=True)
 
-# GRÁFICO 7
-if "Tipo de Frota" in df_filtrado.columns and not df_filtrado["Tipo de Frota"].dropna().empty:
-    tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
-    tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
-    tipos_frota = tipos_frota.sort_values("Ocorrências", ascending=False)
-    plot_horizontal_bar(tipos_frota, "Ocorrências", "Tipo de Frota", ["Tipo de Frota", "Ocorrências"], "Tipos de Frota com Mais Ocorrências")
+# GRÁFICO 7 - Dias com mais aberturas de OS
+if "Entrada" in df.columns:
+    aberturas_por_dia = df["Entrada"].dt.date.value_counts().reset_index()
+    aberturas_por_dia.columns = ["Data", "Quantidade"]
+    aberturas_por_dia = aberturas_por_dia.sort_values("Data")
+    st.subheader("Dias com Maior Número de Abertura de OS")
+    grafico_aberturas = alt.Chart(aberturas_por_dia).mark_bar(color="green").encode(
+        x=alt.X("Data:T", title="Data da Entrada"),
+        y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
+        tooltip=["Data", "Quantidade"]
+    ).properties(width=800, height=400)
+    st.altair_chart(grafico_aberturas, use_container_width=True)
 
 # GRÁFICO 8
 if "Descrição  frota" in df_filtrado.columns and not df_filtrado["Descrição  frota"].dropna().empty:
