@@ -109,36 +109,22 @@ if "Ano/Mes" in df_filtrado.columns:
     st.altair_chart(chart_tendencia, use_container_width=True)
 
 # GRÁFICO 7
-st.subheader("Tipos de Frota com Mais Ocorrências")
-if "Tipo de Frota" in df_filtrado.columns:
+if "Tipo de Frota" in df_filtrado.columns and not df_filtrado["Tipo de Frota"].dropna().empty:
     tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
-    if not tipos_frota.empty:
-        tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
-        tipos_frota = tipos_frota.sort_values("Ocorrências", ascending=False)
-        plot_horizontal_bar(tipos_frota, "Ocorrências", "Tipo de Frota", ["Tipo de Frota", "Ocorrências"], "")
-    else:
-        st.info("Nenhum dado disponível para Tipos de Frota.")
-
+    tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
+    tipos_frota = tipos_frota.sort_values("Ocorrências", ascending=False)
+    plot_horizontal_bar(tipos_frota, "Ocorrências", "Tipo de Frota", ["Tipo de Frota", "Ocorrências"], "Tipos de Frota com Mais Ocorrências")
 
 # GRÁFICO 8
-st.subheader("Frotas mais Frequentes (Descrição Frota)")
-if "Descrição  Frota" in df_filtrado.columns:
-    descricao_frota = df_filtrado["Descrição  Frota"].value_counts().reset_index().head(15)
-    if not descricao_frota.empty:
-        descricao_frota.columns = ["Descrição  Frota", "Ocorrências"]
-        descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False)
-        plot_horizontal_bar(descricao_frota, "Ocorrências", "Descrição  Frota", ["Descrição  Frota", "Ocorrências"], "")
-    else:
-        st.info("Nenhum dado disponível para Descrição  Frota.")
-
+if "Descrição  frota" in df_filtrado.columns and not df_filtrado["Descrição  frota"].dropna().empty:
+    descricao_frota = df_filtrado["Descrição  frota"].value_counts().reset_index()
+    descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
+    descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False).head(20)
+    plot_horizontal_bar(descricao_frota, "Ocorrências", "Descrição da Frota", ["Descrição da Frota", "Ocorrências"], "Frotas mais Frequentes (Descrição da Frota)")
 
 # GRÁFICO 9
-st.subheader("Distribuição por Tipo de Manutenção")
-if "Tipo de Manutenção" in df_filtrado.columns:
-    tipo_manutencao = df_filtrado["Tipo de Manutenção"].value_counts().reset_index().head(15)
-    if not tipo_manutencao.empty:
-        tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
-        tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=False)
-        plot_horizontal_bar(tipo_manutencao, "Ocorrências", "Tipo de Manutenção", ["Tipo de Manutenção", "Ocorrências"], "")
-    else:
-        st.info("Nenhum dado disponível para Tipo de Manutenção.")
+if "Tipo de manutenção" in df_filtrado.columns and not df_filtrado["Tipo de manutenção"].dropna().empty:
+    tipo_manutencao = df_filtrado["Tipo de manutenção"].value_counts().reset_index()
+    tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
+    tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=False)
+    plot_horizontal_bar(tipo_manutencao, "Ocorrências", "Tipo de Manutenção", ["Tipo de Manutenção", "Ocorrências"], "Distribuição por Tipo de Manutenção")
