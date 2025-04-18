@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -56,14 +55,10 @@ df_filtrado = df[df["Origem"] == origem_selecionada]
 
 def plot_horizontal_bar(data, x_col, y_col, tooltip, titulo):
     chart = alt.Chart(data).mark_bar(color="green").encode(
-        y=alt.Y(
-            f"{y_col}:N",
-            sort="-x",
-            axis=alt.Axis(labelLimit=250, titleLimit=250)
-        ),
-        x=alt.X(f"{x_col}:Q"),
+        y=alt.Y(f"{y_col}:N", sort="-x", axis=alt.Axis(labelLimit=400, titleLimit=400)),
+        x=alt.X(f"{x_col}:Q", axis=alt.Axis(title="Quantidade")),
         tooltip=tooltip
-    ).properties(width=800, height=400)
+    ).properties(width=1000, height=400)
     st.subheader(titulo)
     st.altair_chart(chart, use_container_width=True)
 
@@ -124,7 +119,7 @@ if "Tipo de Frota" in df_filtrado.columns and not df_filtrado["Tipo de Frota"].d
 if "Descrição da Frota" in df_filtrado.columns and not df_filtrado["Descrição da Frota"].dropna().empty:
     descricao_frota = df_filtrado["Descrição da Frota"].value_counts().reset_index()
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
-    descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False)
+    descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False).head(20)
     plot_horizontal_bar(descricao_frota, "Ocorrências", "Descrição da Frota", ["Descrição da Frota", "Ocorrências"], "Frotas mais Frequentes (Descrição da Frota)")
 
 # GRÁFICO 9
