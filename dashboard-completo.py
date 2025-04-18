@@ -20,7 +20,7 @@ def carregar_dados():
         df["Origem"] = "NÃO INFORMADO"
     if "Entrada" in df.columns:
         df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
-        df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
+        df["Ano/Mes"] = df["Entrada"].dt.to_period("M").astype(str)
     return df
 
 def classificar_componente(texto):
@@ -63,6 +63,7 @@ def plot_bar_chart(data, x_col, y_col, tooltip, titulo):
     st.subheader(titulo)
     st.altair_chart(chart, use_container_width=True)
 
+# GRÁFICOS 1 a 5 (já existentes)
 if "Causa manutenção" in df_filtrado.columns:
     tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
     tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
@@ -92,20 +93,32 @@ agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_bar_chart(agrupado_componentes, "Componente", "Ocorrências", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
 
+# GRÁFICO 6: Tendência Mensal de Manutenções
+if "Ano/Mes" in df_filtrado.columns:
+    tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
+    tendencia.columns = ["Ano/Mês", "Quantidade"]
+    st.subheader("Tendência Mensal de Manutenções")
+    chart_tendencia = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
+        x=alt.X("Ano/Mês:N", title="Mês"),
+        y=alt.Y("Quantidade:Q", title="Total de Manutenções"),
+        tooltip=["Ano/Mês", "Quantidade"]
+    ).properties(width=800, height=400)
+    st.altair_chart(chart_tendencia, use_container_width=True)
+
+# GRÁFICO 7: Tipos de Frota com Mais Ocorrências
 if "Tipo de Frota" in df_filtrado.columns and not df_filtrado["Tipo de Frota"].dropna().empty:
     tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
     tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
-    tipos_frota = tipos_frota.sort_values("Ocorrências", ascending=False)
     plot_bar_chart(tipos_frota, "Tipo de Frota", "Ocorrências", ["Tipo de Frota", "Ocorrências"], "Tipos de Frota com Mais Ocorrências")
 
+# GRÁFICO 8: Frotas mais Frequentes (Descrição da Frota)
 if "Descrição da Frota" in df_filtrado.columns and not df_filtrado["Descrição da Frota"].dropna().empty:
     descricao_frota = df_filtrado["Descrição da Frota"].value_counts().reset_index()
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
-    descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False)
     plot_bar_chart(descricao_frota, "Descrição da Frota", "Ocorrências", ["Descrição da Frota", "Ocorrências"], "Frotas mais Frequentes (Descrição da Frota)")
 
+# GRÁFICO 9: Distribuição por Tipo de Manutenção
 if "Tipo de Manutenção" in df_filtrado.columns and not df_filtrado["Tipo de Manutenção"].dropna().empty:
     tipo_manutencao = df_filtrado["Tipo de Manutenção"].value_counts().reset_index()
     tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
-    tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=False)
     plot_bar_chart(tipo_manutencao, "Tipo de Manutenção", "Ocorrências", ["Tipo de Manutenção", "Ocorrências"], "Distribuição por Tipo de Manutenção")
