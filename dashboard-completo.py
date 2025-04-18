@@ -55,7 +55,7 @@ df_filtrado = df[df["Origem"] == origem_selecionada]
 
 def plot_bar_with_labels(data, x_col, y_col, tooltip, titulo):
     chart = alt.Chart(data).mark_bar(color="green").encode(
-        x=alt.X(f"{x_col}:N", sort="-y"),
+        x=alt.X(f"{x_col}:N", sort="-x"),
         y=alt.Y(f"{y_col}:Q"),
         tooltip=tooltip
     )
