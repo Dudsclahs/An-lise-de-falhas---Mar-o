@@ -54,17 +54,16 @@ origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
 df_filtrado = df[df["Origem"] == origem_selecionada]
 
 def plot_bar_with_labels(data, x_col, y_col, tooltip, titulo):
-    data = data.sort_values(by=y_col, ascending=True)
     chart = alt.Chart(data).mark_bar(color="green").encode(
-        y=alt.Y(f"{x_col}:N", sort=None, title=x_col),
-        x=alt.X(f"{y_col}:Q", title=y_col),
+        x=alt.X(f"{x_col}:N", sort="-y"),
+        y=alt.Y(f"{y_col}:Q"),
         tooltip=tooltip
     )
     labels = alt.Chart(data).mark_text(
-        align='left', baseline='middle', dx=5, fontSize=12
+        align='center', baseline='bottom', dy=-5, fontSize=12
     ).encode(
-        y=f"{x_col}:N",
-        x=f"{y_col}:Q",
+        x=f"{x_col}:N",
+        y=f"{y_col}:Q",
         text=f"{y_col}:Q"
     )
     st.subheader(titulo)
