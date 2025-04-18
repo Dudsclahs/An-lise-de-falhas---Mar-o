@@ -60,7 +60,7 @@ def plot_horizontal_bar(data, x_col, y_col, tooltip, titulo):
         x=alt.X(f"{x_col}:Q", axis=alt.Axis(title="Quantidade")),
         tooltip=tooltip
     ).properties(width=1000, height=400)
-    st.subheader(titulo)
+    st.subheader
     st.altair_chart(chart, use_container_width=True)
 
 # GRÁFICO 1
