@@ -130,40 +130,22 @@ if "Ano/Mes" in df_filtrado.columns:
     st.altair_chart(chart_tendencia, use_container_width=True)
 
 # GRÁFICO 7
-if "Tipo de Frota" in df_filtrado.columns:
-    st.subheader("Tipos de Frota com Mais Ocorrências")
+if "Tipo de Frota" in df_filtrado.columns and not df_filtrado["Tipo de Frota"].dropna().empty:
     tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
     tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
     tipos_frota = tipos_frota.sort_values("Ocorrências", ascending=False)
-    chart7 = alt.Chart(tipos_frota).mark_bar(color="green").encode(
-        x=alt.X("Tipo de Frota:N", sort="-y"),
-        y="Ocorrências:Q",
-        tooltip=["Tipo de Frota", "Ocorrências"]
-    )
-    st.altair_chart(chart7, use_container_width=True)
+    plot_horizontal_bar(tipos_frota, "Ocorrências", "Tipo de Frota", ["Tipo de Frota", "Ocorrências"], "Tipos de Frota com Mais Ocorrências")
 
 # GRÁFICO 8
-if "Descrição da Frota" in df_filtrado.columns:
-    st.subheader("Frotas mais Frequentes (Descrição da Frota)")
+if "Descrição da Frota" in df_filtrado.columns and not df_filtrado["Descrição da Frota"].dropna().empty:
     descricao_frota = df_filtrado["Descrição da Frota"].value_counts().reset_index()
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
     descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False)
-    chart8 = alt.Chart(descricao_frota).mark_bar(color="green").encode(
-        x=alt.X("Descrição da Frota:N", sort="-y"),
-        y="Ocorrências:Q",
-        tooltip=["Descrição da Frota", "Ocorrências"]
-    )
-    st.altair_chart(chart8, use_container_width=True)
+    plot_horizontal_bar(descricao_frota, "Ocorrências", "Descrição da Frota", ["Descrição da Frota", "Ocorrências"], "Frotas mais Frequentes (Descrição da Frota)")
 
 # GRÁFICO 9
-if "Tipo de Manutenção" in df_filtrado.columns:
-    st.subheader("Distribuição por Tipo de Manutenção")
+if "Tipo de Manutenção" in df_filtrado.columns and not df_filtrado["Tipo de Manutenção"].dropna().empty:
     tipo_manutencao = df_filtrado["Tipo de Manutenção"].value_counts().reset_index()
     tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
     tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=False)
-    chart9 = alt.Chart(tipo_manutencao).mark_bar(color="green").encode(
-        x=alt.X("Tipo de Manutenção:N", sort="-y"),
-        y="Ocorrências:Q",
-        tooltip=["Tipo de Manutenção", "Ocorrências"]
-    )
-    st.altair_chart(chart9, use_container_width=True)
+    plot_horizontal_bar(tipo_manutencao, "Ocorrências", "Tipo de Manutenção", ["Tipo de Manutenção", "Ocorrências"], "Distribuição por Tipo de Manutenção")
