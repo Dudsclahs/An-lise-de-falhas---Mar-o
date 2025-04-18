@@ -73,7 +73,7 @@ chart_os = alt.Chart(os_por_frota).mark_bar(color="green").encode(
 )
 st.altair_chart(chart_os, use_container_width=True)
 
-# GRÁFICO 3: Top 10 - Tempo de Permanência por Frota
+# GRÁFICO 3: Top 10 - Tempo Total de Permanência por Frota
 st.subheader("Top 10 - Tempo Total de Permanência por Frota (h)")
 tempo_por_frota = df.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
 tempo_por_frota.columns = ["Frota", "Tempo (h)"]
@@ -85,7 +85,22 @@ chart_tempo = alt.Chart(tempo_top).mark_bar(color="green").encode(
 )
 st.altair_chart(chart_tempo, use_container_width=True)
 
-# GRÁFICO 4: Interativo - Componentes por Origem
+# GRÁFICO 4: Novo - Tempo de Permanência por Frota (a partir de 18/03/2025)
+st.subheader("Top 10 - Tempo de Permanência por Frota (a partir de 18/03/2025)")
+df_periodo = df[df["Entrada"] >= pd.to_datetime("2025-03-18")]
+df_periodo_tempo = df_periodo.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
+df_periodo_tempo.columns = ["Frota", "Tempo (h)"]
+top1 = df_periodo_tempo.sort_values("Tempo (h)", ascending=False).iloc[0]["Frota"]
+df_periodo_tempo = df_periodo_tempo[df_periodo_tempo["Frota"] != top1]
+df_top10_periodo = df_periodo_tempo.sort_values("Tempo (h)", ascending=False).head(10)
+chart_top10_periodo = alt.Chart(df_top10_periodo).mark_bar(color="green").encode(
+    x=alt.X("Frota:N", sort="-y"),
+    y="Tempo (h):Q",
+    tooltip=["Frota", "Tempo (h)"]
+).properties(width=700, height=400)
+st.altair_chart(chart_top10_periodo, use_container_width=True)
+
+# GRÁFICO 5: Interativo - Componentes por Origem
 st.subheader("Ocorrências por Componente - Filtrado por Origem")
 agrupado = df.groupby(["Origem", "Componente Detectado"]).size().reset_index(name="Ocorrências")
 origem_selector = alt.selection_single(
