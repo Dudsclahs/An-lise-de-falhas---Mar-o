@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -62,21 +63,24 @@ def plot_horizontal_bar(data, x_col, y_col, tooltip, titulo):
     st.subheader(titulo)
     st.altair_chart(chart, use_container_width=True)
 
-# GRÁFICOS 1 a 5
+# GRÁFICO 1
 if "Causa manutenção" in df_filtrado.columns:
     tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
     tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
     plot_horizontal_bar(tipo_falha, "Quantidade", "Tipo de Falha", ["Tipo de Falha", "Quantidade"], "Top 10 - Tipos de Falha")
 
+# GRÁFICO 2
 os_por_frota = df_filtrado["Número de frota"].value_counts().head(10).reset_index()
 os_por_frota.columns = ["Frota", "OS"]
 plot_horizontal_bar(os_por_frota, "OS", "Frota", ["Frota", "OS"], "Top 10 - Número de OS por Frota")
 
+# GRÁFICO 3
 tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
 tempo_por_frota.columns = ["Frota", "Tempo (h)"]
 tempo_top = tempo_por_frota.sort_values("Tempo (h)", ascending=False).head(10)
 plot_horizontal_bar(tempo_top, "Tempo (h)", "Frota", ["Frota", "Tempo (h)"], "Top 10 - Tempo Total de Permanência por Frota (h)")
 
+# GRÁFICO 4
 df_periodo = df_filtrado[df_filtrado["Entrada"] >= pd.to_datetime("2025-03-18")]
 df_periodo_tempo = df_periodo.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
 df_periodo_tempo.columns = ["Frota", "Tempo (h)"]
@@ -88,6 +92,7 @@ if not df_periodo_tempo.empty:
 else:
     st.info("Nenhum dado encontrado a partir de 18/03/2025 para essa origem.")
 
+# GRÁFICO 5
 agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_index()
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
@@ -104,19 +109,21 @@ if "Ano/Mes" in df_filtrado.columns:
     ).properties(width=800, height=400)
     st.altair_chart(chart_tendencia, use_container_width=True)
 
-# GRÁFICOS 7 a 9
+# GRÁFICO 7
 if "Tipo de Frota" in df_filtrado.columns and not df_filtrado["Tipo de Frota"].dropna().empty:
     tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
     tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
     tipos_frota = tipos_frota.sort_values("Ocorrências", ascending=False)
     plot_horizontal_bar(tipos_frota, "Ocorrências", "Tipo de Frota", ["Tipo de Frota", "Ocorrências"], "Tipos de Frota com Mais Ocorrências")
 
+# GRÁFICO 8
 if "Descrição da Frota" in df_filtrado.columns and not df_filtrado["Descrição da Frota"].dropna().empty:
     descricao_frota = df_filtrado["Descrição da Frota"].value_counts().reset_index()
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
     descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False)
     plot_horizontal_bar(descricao_frota, "Ocorrências", "Descrição da Frota", ["Descrição da Frota", "Ocorrências"], "Frotas mais Frequentes (Descrição da Frota)")
 
+# GRÁFICO 9
 if "Tipo de Manutenção" in df_filtrado.columns and not df_filtrado["Tipo de Manutenção"].dropna().empty:
     tipo_manutencao = df_filtrado["Tipo de Manutenção"].value_counts().reset_index()
     tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
