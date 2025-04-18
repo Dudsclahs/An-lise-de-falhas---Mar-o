@@ -20,6 +20,7 @@ def carregar_dados():
         df["Origem"] = "NÃO INFORMADO"
     if "Entrada" in df.columns:
         df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
+        df = df[df["Entrada"] >= pd.to_datetime("2025-01-01")]
         df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
     return df
 
@@ -96,18 +97,18 @@ agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
 
-# GRÁFICO 6/7: Unificado - Dias com Mais OS (Barras + Linha)
+# GRÁFICO 6/7 UNIFICADO
 st.subheader("Dias com Maior Número de Abertura de OS")
 df_dias = df_filtrado.groupby("Entrada")["Boletim"].count().reset_index()
 df_dias.columns = ["Data", "Quantidade"]
 chart_barras = alt.Chart(df_dias).mark_bar(color="green").encode(
-    x=alt.X("Data:T", title="Data da Entrada"),
-    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
+    x=alt.X("Quantidade:Q", title="Quantidade de OS"),
+    y=alt.Y("Data:T", sort="-x", title="Data da Entrada"),
     tooltip=["Data", "Quantidade"]
 )
 chart_linha = alt.Chart(df_dias).mark_line(color="blue", point=True).encode(
-    x="Data:T",
-    y="Quantidade:Q"
+    y="Data:T",
+    x="Quantidade:Q"
 )
 st.altair_chart(chart_barras + chart_linha, use_container_width=True)
 
