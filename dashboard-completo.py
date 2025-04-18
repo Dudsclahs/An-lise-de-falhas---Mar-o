@@ -127,5 +127,5 @@ if "Descrição da Frota" in df_filtrado.columns and not df_filtrado["Descriçã
 if "Tipo de Manutenção" in df_filtrado.columns and not df_filtrado["Tipo de Manutenção"].dropna().empty:
     tipo_manutencao = df_filtrado["Tipo de Manutenção"].value_counts().reset_index()
     tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
-    tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=False)
+    tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=True)
     plot_horizontal_bar(tipo_manutencao, "Ocorrências", "Tipo de Manutenção", ["Tipo de Manutenção", "Ocorrências"], "Distribuição por Tipo de Manutenção")
