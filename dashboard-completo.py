@@ -54,65 +54,41 @@ origens = sorted(df["Origem"].dropna().unique())
 origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
 df_filtrado = df[df["Origem"] == origem_selecionada]
 
-# GRÁFICO 7: Tipos de Frota com Mais Ocorrências
-st.subheader("Tipos de Frota com Mais Ocorrências")
+# Função auxiliar para plotar gráfico com rótulos
+
+def plot_bar_with_labels(data, x_col, y_col, tooltip, titulo):
+    chart = alt.Chart(data).mark_bar(color="green").encode(
+        x=alt.X(f"{x_col}:N", sort=data[x_col].tolist()),
+        y=alt.Y(f"{y_col}:Q"),
+        tooltip=tooltip
+    )
+    labels = alt.Chart(data).mark_text(
+        align='center', baseline='bottom', dy=-5, fontSize=12
+    ).encode(
+        x=f"{x_col}:N",
+        y=f"{y_col}:Q",
+        text=f"{y_col}:Q"
+    )
+    st.subheader(titulo)
+    st.altair_chart(chart + labels, use_container_width=True)
+
+# GRÁFICO 7
 if "Tipo de Frota" in df_filtrado.columns and not df_filtrado["Tipo de Frota"].dropna().empty:
     tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
     tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
     tipos_frota = tipos_frota.sort_values("Ocorrências", ascending=False)
+    plot_bar_with_labels(tipos_frota, "Tipo de Frota", "Ocorrências", ["Tipo de Frota", "Ocorrências"], "Tipos de Frota com Mais Ocorrências")
 
-    chart_tipos_frota = alt.Chart(tipos_frota).mark_bar(color="green").encode(
-        x=alt.X("Tipo de Frota:N", sort=tipos_frota["Tipo de Frota"].tolist()),
-        y="Ocorrências:Q",
-        tooltip=["Tipo de Frota", "Ocorrências"]
-    )
-    labels_tipos_frota = alt.Chart(tipos_frota).mark_text(
-        align='center', baseline='bottom', dy=-5, fontSize=12
-    ).encode(
-        x="Tipo de Frota:N",
-        y="Ocorrências:Q",
-        text="Ocorrências:Q"
-    )
-    st.altair_chart(chart_tipos_frota + labels_tipos_frota, use_container_width=True)
-
-# GRÁFICO 8: Frotas mais Frequentes (Descrição da Frota)
-st.subheader("Frotas mais Frequentes (Descrição da Frota)")
+# GRÁFICO 8
 if "Descrição da Frota" in df_filtrado.columns and not df_filtrado["Descrição da Frota"].dropna().empty:
     descricao_frota = df_filtrado["Descrição da Frota"].value_counts().reset_index()
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
     descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False)
+    plot_bar_with_labels(descricao_frota, "Descrição da Frota", "Ocorrências", ["Descrição da Frota", "Ocorrências"], "Frotas mais Frequentes (Descrição da Frota)")
 
-    chart_desc_frota = alt.Chart(descricao_frota).mark_bar(color="green").encode(
-        x=alt.X("Descrição da Frota:N", sort=descricao_frota["Descrição da Frota"].tolist()),
-        y="Ocorrências:Q",
-        tooltip=["Descrição da Frota", "Ocorrências"]
-    )
-    labels_desc_frota = alt.Chart(descricao_frota).mark_text(
-        align='center', baseline='bottom', dy=-5, fontSize=12
-    ).encode(
-        x="Descrição da Frota:N",
-        y="Ocorrências:Q",
-        text="Ocorrências:Q"
-    )
-    st.altair_chart(chart_desc_frota + labels_desc_frota, use_container_width=True)
-
-# GRÁFICO 9: Distribuição por Tipo de Manutenção
-st.subheader("Distribuição por Tipo de Manutenção")
+# GRÁFICO 9
 if "Tipo de Manutenção" in df_filtrado.columns and not df_filtrado["Tipo de Manutenção"].dropna().empty:
     tipo_manutencao = df_filtrado["Tipo de Manutenção"].value_counts().reset_index()
     tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
     tipo_manutencao = tipo_manutencao.sort_values("Ocorrências", ascending=False)
-
-    chart_tipo_manutencao = alt.Chart(tipo_manutencao).mark_bar(color="green").encode(
-        x=alt.X("Tipo de Manutenção:N", sort=tipo_manutencao["Tipo de Manutenção"].tolist()),
-        y="Ocorrências:Q",
-        tooltip=["Tipo de Manutenção", "Ocorrências"]
-    )
-    labels_tipo_manutencao = alt.Chart(tipo_manutencao).mark_text(
-        align='center', baseline='bottom', dy=-5, fontSize=12
-    ).encode(
-        x="Tipo de Manutenção:N",
-        y="Ocorrências:Q",
-        text="Ocorrências:Q"
-    )
-    st.altair_chart(chart_tipo_manutencao + labels_tipo_manutencao, use_container_width=True)
+    plot_bar_with_labels(tipo_manutencao, "Tipo de Manutenção", "Ocorrências", ["Tipo de Manutenção", "Ocorrências"], "Distribuição por Tipo de Manutenção")
