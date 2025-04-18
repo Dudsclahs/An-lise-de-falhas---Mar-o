@@ -121,15 +121,15 @@ if "Tipo de Frota" in df_filtrado.columns:
 
 
 # GRÁFICO 8
-st.subheader("Frotas mais Frequentes (Descrição da Frota)")
-if "Descrição da Frota" in df_filtrado.columns:
-    descricao_frota = df_filtrado["Descrição da Frota"].value_counts().reset_index().head(15)
+st.subheader("Frotas mais Frequentes (Descrição Frota)")
+if "Descrição  Frota" in df_filtrado.columns:
+    descricao_frota = df_filtrado["Descrição  Frota"].value_counts().reset_index().head(15)
     if not descricao_frota.empty:
-        descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
+        descricao_frota.columns = ["Descrição  Frota", "Ocorrências"]
         descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False)
-        plot_horizontal_bar(descricao_frota, "Ocorrências", "Descrição da Frota", ["Descrição da Frota", "Ocorrências"], "")
+        plot_horizontal_bar(descricao_frota, "Ocorrências", "Descrição  Frota", ["Descrição  Frota", "Ocorrências"], "")
     else:
-        st.info("Nenhum dado disponível para Descrição da Frota.")
+        st.info("Nenhum dado disponível para Descrição  Frota.")
 
 
 # GRÁFICO 9
