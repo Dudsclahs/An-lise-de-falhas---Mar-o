@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -125,3 +124,51 @@ grafico_componentes = alt.Chart(agrupado_componentes).mark_bar(color="green").en
     height=400
 )
 st.altair_chart(grafico_componentes, use_container_width=True)
+
+# GRÁFICO 6: Tendência Mensal de Manutenções
+st.subheader("Tendência Mensal de Manutenções")
+if "Ano/Mes" in df_filtrado.columns:
+    tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
+    tendencia.columns = ["Ano/Mês", "Quantidade"]
+    chart_tendencia = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
+        x="Ano/Mês:T",
+        y="Quantidade:Q",
+        tooltip=["Ano/Mês", "Quantidade"]
+    ).properties(width=800, height=400)
+    st.altair_chart(chart_tendencia, use_container_width=True)
+
+# GRÁFICO 7: Tipos de Frota com Mais Ocorrências
+st.subheader("Tipos de Frota com Mais Ocorrências")
+if "Tipo de Frota" in df_filtrado.columns:
+    tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
+    tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
+    chart_tipos_frota = alt.Chart(tipos_frota).mark_bar(color="green").encode(
+        x=alt.X("Tipo de Frota:N", sort="-y"),
+        y="Ocorrências:Q",
+        tooltip=["Tipo de Frota", "Ocorrências"]
+    ).properties(width=800, height=400)
+    st.altair_chart(chart_tipos_frota, use_container_width=True)
+
+# GRÁFICO 8: Descrição da Frota mais Frequente (substituindo modelo de equipamento)
+st.subheader("Frotas mais Frequentes (Descrição da Frota)")
+if "Descrição da Frota" in df_filtrado.columns:
+    descricao_frota = df_filtrado["Descrição da Frota"].value_counts().reset_index()
+    descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
+    chart_desc_frota = alt.Chart(descricao_frota).mark_bar(color="green").encode(
+        x=alt.X("Descrição da Frota:N", sort="-y"),
+        y="Ocorrências:Q",
+        tooltip=["Descrição da Frota", "Ocorrências"]
+    ).properties(width=800, height=400)
+    st.altair_chart(chart_desc_frota, use_container_width=True)
+
+# GRÁFICO 9: Distribuição por Tipo de Manutenção
+st.subheader("Distribuição por Tipo de Manutenção")
+if "Tipo de Manutenção" in df_filtrado.columns:
+    tipo_manutencao = df_filtrado["Tipo de Manutenção"].value_counts().reset_index()
+    tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
+    chart_tipo_manutencao = alt.Chart(tipo_manutencao).mark_bar(color="green").encode(
+        x=alt.X("Tipo de Manutenção:N", sort="-y"),
+        y="Ocorrências:Q",
+        tooltip=["Tipo de Manutenção", "Ocorrências"]
+    ).properties(width=800, height=400)
+    st.altair_chart(chart_tipo_manutencao, use_container_width=True)
