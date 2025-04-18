@@ -20,7 +20,6 @@ def carregar_dados():
         df["Origem"] = "NÃO INFORMADO"
     if "Entrada" in df.columns:
         df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
-        df = df[df["Entrada"] >= pd.to_datetime("2025-01-01")]
         df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
     return df
 
@@ -97,20 +96,24 @@ agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
 
-# GRÁFICO 6/7 UNIFICADO
-st.subheader("Dias com Maior Número de Abertura de OS")
-df_dias = df_filtrado.groupby("Entrada")["Boletim"].count().reset_index()
-df_dias.columns = ["Data", "Quantidade"]
-chart_barras = alt.Chart(df_dias).mark_bar(color="green").encode(
-    x=alt.X("Quantidade:Q", title="Quantidade de OS"),
-    y=alt.Y("Data:T", sort="-x", title="Data da Entrada"),
-    tooltip=["Data", "Quantidade"]
-)
-chart_linha = alt.Chart(df_dias).mark_line(color="blue", point=True).encode(
-    y="Data:T",
-    x="Quantidade:Q"
-)
-st.altair_chart(chart_barras + chart_linha, use_container_width=True)
+# GRÁFICO 6
+if "Ano/Mes" in df_filtrado.columns:
+    st.subheader("Tendência Mensal de Manutenções")
+    tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
+    tendencia.columns = ["Ano/Mês", "Quantidade"]
+    chart_tendencia = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
+        x=alt.X("Ano/Mês:T", title="Ano/Mês"),
+        y="Quantidade:Q",
+        tooltip=["Ano/Mês", "Quantidade"]
+    ).properties(width=800, height=400)
+    st.altair_chart(chart_tendencia, use_container_width=True)
+
+# GRÁFICO 7
+if "Tipo de Frota" in df_filtrado.columns and not df_filtrado["Tipo de Frota"].dropna().empty:
+    tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
+    tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
+    tipos_frota = tipos_frota.sort_values("Ocorrências", ascending=False)
+    plot_horizontal_bar(tipos_frota, "Ocorrências", "Tipo de Frota", ["Tipo de Frota", "Ocorrências"], "Tipos de Frota com Mais Ocorrências")
 
 # GRÁFICO 8
 if "Descrição  frota" in df_filtrado.columns and not df_filtrado["Descrição  frota"].dropna().empty:
