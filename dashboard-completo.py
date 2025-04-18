@@ -96,25 +96,20 @@ agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
 
-# GRÁFICO 6 e 7 UNIFICADOS
-st.subheader("Tendência Diária de Abertura de OS (2025)")
-aberturas_por_dia = df[df["Entrada"] >= pd.to_datetime("2025-01-01")]
-aberturas_por_dia = aberturas_por_dia["Entrada"].dt.date.value_counts().reset_index()
-aberturas_por_dia.columns = ["Data", "Quantidade"]
-aberturas_por_dia = aberturas_por_dia.sort_values("Data")
-
-bar = alt.Chart(aberturas_por_dia).mark_bar(color="green").encode(
-    y=alt.Y("Data:T", sort="-x", title="Data"),
-    x=alt.X("Quantidade:Q", title="Quantidade de OS"),
+# GRÁFICO 6/7: Unificado - Dias com Mais OS (Barras + Linha)
+st.subheader("Dias com Maior Número de Abertura de OS")
+df_dias = df_filtrado.groupby("Entrada")["Boletim"].count().reset_index()
+df_dias.columns = ["Data", "Quantidade"]
+chart_barras = alt.Chart(df_dias).mark_bar(color="green").encode(
+    x=alt.X("Data:T", title="Data da Entrada"),
+    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
     tooltip=["Data", "Quantidade"]
 )
-
-linha = alt.Chart(aberturas_por_dia).mark_line(color="orange", point=True).encode(
-    y=alt.Y("Data:T", sort="-x"),
-    x="Quantidade:Q"
+chart_linha = alt.Chart(df_dias).mark_line(color="blue", point=True).encode(
+    x="Data:T",
+    y="Quantidade:Q"
 )
-
-st.altair_chart(bar + linha, use_container_width=True)
+st.altair_chart(chart_barras + chart_linha, use_container_width=True)
 
 # GRÁFICO 8
 if "Descrição  frota" in df_filtrado.columns and not df_filtrado["Descrição  frota"].dropna().empty:
