@@ -111,7 +111,7 @@ if "Ano/Mes" in df_filtrado.columns:
 # GRÁFICO 7
 st.subheader("Tipos de Frota com Mais Ocorrências")
 if "Tipo de Frota" in df_filtrado.columns:
-    tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index().head(15)
+    tipos_frota = df_filtrado["Tipo de Frota"].value_counts().reset_index()
     if not tipos_frota.empty:
         tipos_frota.columns = ["Tipo de Frota", "Ocorrências"]
         tipos_frota = tipos_frota.sort_values("Ocorrências", ascending=False)
