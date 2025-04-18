@@ -111,24 +111,17 @@ if not df_periodo_tempo.empty:
 else:
     st.info("Nenhum dado encontrado a partir de 18/03/2025 para essa origem.")
 
-# GRÁFICO 5: Interativo - Componentes por Origem
-st.subheader("Ocorrências por Componente - Filtrado por Origem")
-agrupado = df.groupby(["Origem", "Componente Detectado"]).size().reset_index(name="Ocorrências")
-origem_selector = alt.selection_single(
-    fields=["Origem"],
-    bind=alt.binding_select(options=sorted(agrupado["Origem"].dropna().unique())),
-    name="Origem"
-)
-grafico_componentes = alt.Chart(agrupado).mark_bar(color="green").encode(
-    x=alt.X("Componente Detectado:N", sort="-y"),
+# GRÁFICO 5: Ocorrências por Componente (Descrição da OS)
+st.subheader("Ocorrências por Componente (Descrição da OS)")
+agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_index()
+agrupado_componentes.columns = ["Componente", "Ocorrências"]
+
+grafico_componentes = alt.Chart(agrupado_componentes).mark_bar(color="green").encode(
+    x=alt.X("Componente:N", sort="-y"),
     y=alt.Y("Ocorrências:Q"),
-    tooltip=["Origem", "Componente Detectado", "Ocorrências"]
-).add_params(
-    origem_selector
-).transform_filter(
-    origem_selector
+    tooltip=["Componente", "Ocorrências"]
 ).properties(
     width=800,
-    height=450
+    height=400
 )
 st.altair_chart(grafico_componentes, use_container_width=True)
