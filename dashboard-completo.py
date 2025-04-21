@@ -22,8 +22,8 @@ def carregar_dados():
         df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
         df = df[df["Entrada"] >= pd.to_datetime("2025-01-01")]
         df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
-    if "Saída" in df.columns:
-        df["Saída"] = pd.to_datetime(df["Saída"], errors="coerce")
+    if "Saída Real" in df.columns:
+        df["Saída"] = pd.to_datetime(df["Saída Real"], errors="coerce")
     return df
 
 def classificar_componente(texto):
@@ -48,6 +48,7 @@ def classificar_componente(texto):
         if any(p in texto for p in palavras):
             return categoria
     return "Não Classificado"
+
 
 df = carregar_dados()
 df["Componente Detectado"] = df["Descrição do Trabalho / Observação (Ordem de serviço)"].apply(classificar_componente)
