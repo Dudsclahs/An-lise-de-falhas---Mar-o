@@ -22,8 +22,6 @@ def carregar_dados():
         df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
         df = df[df["Entrada"] >= pd.to_datetime("2025-01-01")]
         df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
-    if "Saída Real" in df.columns:
-        df["Saída"] = pd.to_datetime(df["Saída Real"], errors="coerce")
     return df
 
 def classificar_componente(texto):
@@ -105,36 +103,32 @@ if "Ano/Mes" in df_filtrado.columns:
     tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
     tendencia.columns = ["Ano/Mês", "Quantidade"]
     tendencia["Ano/Mês"] = tendencia["Ano/Mês"].dt.to_timestamp()
+
     chart_tendencia = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
-        x=alt.X("Ano/Mês:T", title="Ano/Mês"),
+        x=alt.X("Ano/Mês:T", title="Ano/Mês", axis=alt.Axis(format="%b/%Y", labelAngle=-45)),
         y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
-        tooltip=["Ano/Mês", "Quantidade"]
+        tooltip=[alt.Tooltip("Ano/Mês:T", title="Mês"), alt.Tooltip("Quantidade:Q")]
     ).properties(width=1000, height=400)
+
     st.altair_chart(chart_tendencia, use_container_width=True)
 
-# GRÁFICO 7 - Tendência Diária de Entrada
-st.subheader("Tendência Diária de Entrada de OS")
-df_entrada = df.dropna(subset=["Entrada"])
-tendencia_entrada = df_entrada.groupby(df_entrada["Entrada"].dt.date)["Boletim"].count().reset_index()
-tendencia_entrada.columns = ["Data", "Quantidade"]
-chart_entrada = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
-    x=alt.X("Data:T", title="Data de Entrada"),
+# GRÁFICO 7
+st.subheader("Dias com Maior Número de Abertura de OS")
+df_dias = df_filtrado.groupby("Entrada")["Boletim"].count().reset_index()
+df_dias.columns = ["Data", "Quantidade"]
+chart_barras = alt.Chart(df_dias).mark_bar(color="green").encode(
+    x=alt.X("Data:T", title="Data da Entrada", axis=alt.Axis(format="%d/%m/%Y", labelAngle=-45)),
     y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
-    tooltip=["Data", "Quantidade"]
-).properties(width=1000, height=400)
-st.altair_chart(chart_entrada, use_container_width=True)
+    tooltip=["Data:T", "Quantidade"]
+)
+st.altair_chart(chart_barras, use_container_width=True)
 
-# GRÁFICO 8 - Tendência Diária de Saída
-st.subheader("Tendência Diária de Saída de OS")
-df_saida = df.dropna(subset=["Saída"])
-tendencia_saida = df_saida.groupby(df_saida["Saída"].dt.date)["Boletim"].count().reset_index()
-tendencia_saida.columns = ["Data", "Quantidade"]
-chart_saida = alt.Chart(tendencia_saida).mark_bar(color="green").encode(
-    x=alt.X("Data:T", title="Data de Saída"),
-    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
-    tooltip=["Data", "Quantidade"]
-).properties(width=1000, height=400)
-st.altair_chart(chart_saida, use_container_width=True)
+# GRÁFICO 8
+if "Descrição  frota" in df_filtrado.columns and not df_filtrado["Descrição  frota"].dropna().empty:
+    descricao_frota = df_filtrado["Descrição  frota"].value_counts().reset_index()
+    descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
+    descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False).head(20)
+    plot_horizontal_bar(descricao_frota, "Ocorrências", "Descrição da Frota", ["Descrição da Frota", "Ocorrências"], "Frotas mais Frequentes (Descrição da Frota)")
 
 # GRÁFICO 9
 if "Tipo de manutenção" in df_filtrado.columns and not df_filtrado["Tipo de manutenção"].dropna().empty:
