@@ -20,6 +20,7 @@ def carregar_dados():
         df["Origem"] = "NÃO INFORMADO"
     if "Entrada" in df.columns:
         df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
+        df = df[df["Entrada"] >= pd.to_datetime("2025-01-01")]
         df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
     return df
 
@@ -95,7 +96,7 @@ else:
 agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_index()
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
-    
+
 # GRÁFICO 6
 if "Ano/Mes" in df_filtrado.columns:
     st.subheader("Tendência Mensal de Manutenções")
@@ -111,15 +112,14 @@ if "Ano/Mes" in df_filtrado.columns:
 
     st.altair_chart(chart_tendencia, use_container_width=True)
 
-
 # GRÁFICO 7
 st.subheader("Dias com Maior Número de Abertura de OS")
 df_dias = df_filtrado.groupby("Entrada")["Boletim"].count().reset_index()
 df_dias.columns = ["Data", "Quantidade"]
 chart_barras = alt.Chart(df_dias).mark_bar(color="green").encode(
-    x=alt.X("Data:T", title="Data da Entrada"),
+    x=alt.X("Data:T", title="Data da Entrada", axis=alt.Axis(format="%d/%m/%Y", labelAngle=-45)),
     y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
-    tooltip=["Data", "Quantidade"]
+    tooltip=["Data:T", "Quantidade"]
 )
 st.altair_chart(chart_barras, use_container_width=True)
 
