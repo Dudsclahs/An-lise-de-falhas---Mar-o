@@ -97,10 +97,11 @@ agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
 
-# GRÁFICO 6
+# GRÁFICO 6 - Tendência Mensal de Manutenções (a partir de março/2025)
 if "Ano/Mes" in df_filtrado.columns:
     st.subheader("Tendência Mensal de Manutenções")
-    tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
+    tendencia = df_filtrado[df_filtrado["Entrada"] >= pd.to_datetime("2025-03-01")]
+    tendencia = tendencia.groupby("Ano/Mes")["Boletim"].count().reset_index()
     tendencia.columns = ["Ano/Mês", "Quantidade"]
     tendencia["Ano/Mês"] = tendencia["Ano/Mês"].dt.to_timestamp()
 
