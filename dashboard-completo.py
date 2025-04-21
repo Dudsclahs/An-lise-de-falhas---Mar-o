@@ -95,18 +95,6 @@ else:
 agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_index()
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
-
-# GRÁFICO 6
-if "Ano/Mes" in df_filtrado.columns:
-    st.subheader("Tendência Mensal de Manutenções")
-    tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
-    tendencia.columns = ["Ano/Mês", "Quantidade"]
-    chart_tendencia = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
-        x=alt.X("Ano/Mês:T", title="Ano/Mês"),
-        y="Quantidade:Q",
-        tooltip=["Ano/Mês", "Quantidade"]
-    ).properties(width=1000, height=400)
-    st.altair_chart(chart_tendencia, use_container_width=True)
     
 # GRÁFICO 6
 if "Ano/Mes" in df_filtrado.columns:
