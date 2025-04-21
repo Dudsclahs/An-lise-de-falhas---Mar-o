@@ -63,7 +63,7 @@ def plot_horizontal_bar(data, x_col, y_col, tooltip, titulo):
     ).properties(width=1000, height=400)
     st.subheader(titulo)
     st.altair_chart(chart, use_container_width=True)
-    
+
 # GRÁFICO 1
 if "Causa manutenção" in df_filtrado.columns:
     tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
