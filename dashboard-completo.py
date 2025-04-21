@@ -97,21 +97,19 @@ agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
 plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Ocorrências por Componente (Descrição da OS)")
 
-# GRÁFICO 6 - Tendência Mensal de Manutenções (a partir de março/2025)
-if "Ano/Mes" in df_filtrado.columns:
-    st.subheader("Tendência Mensal de Manutenções")
-    tendencia = df_filtrado[df_filtrado["Entrada"] >= pd.to_datetime("2025-03-01")]
-    tendencia = tendencia.groupby("Ano/Mes")["Boletim"].count().reset_index()
-    tendencia.columns = ["Ano/Mês", "Quantidade"]
-    tendencia["Ano/Mês"] = tendencia["Ano/Mês"].dt.to_timestamp()
+# GRÁFICO 6 - Tendência Diária de Abertura de OS
+st.subheader("Tendência Diária de Abertura de OS")
+tendencia_diaria = df_filtrado[df_filtrado["Entrada"] >= pd.to_datetime("2025-03-01")]
+tendencia_diaria = tendencia_diaria.groupby("Entrada")["Boletim"].count().reset_index()
+tendencia_diaria.columns = ["Data", "Quantidade"]
 
-    chart_tendencia = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
-        x=alt.X("Ano/Mês:T", title="Ano/Mês", axis=alt.Axis(format="%b/%Y", labelAngle=-45)),
-        y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
-        tooltip=[alt.Tooltip("Ano/Mês:T", title="Mês"), alt.Tooltip("Quantidade:Q")]
-    ).properties(width=1000, height=400)
+chart_tendencia_diaria = alt.Chart(tendencia_diaria).mark_line(point=True, color="green").encode(
+    x=alt.X("Data:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m", labelAngle=-45)),
+    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
+    tooltip=[alt.Tooltip("Data:T", title="Data"), alt.Tooltip("Quantidade:Q")]
+).properties(width=1000, height=400)
 
-    st.altair_chart(chart_tendencia, use_container_width=True)
+st.altair_chart(chart_tendencia_diaria, use_container_width=True)
 
 # GRÁFICO 7
 st.subheader("Dias com Maior Número de Abertura de OS")
