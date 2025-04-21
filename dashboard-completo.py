@@ -128,7 +128,7 @@ df_saida = df_filtrado.dropna(subset=["Saída"])
 tendencia_saida = df_saida.groupby("Saída")["Boletim"].count().reset_index()
 tendencia_saida.columns = ["Data", "Quantidade"]
 chart_saida = alt.Chart(tendencia_saida).mark_bar(color="green").encode(
-    x=alt.X("Data:T", title="Data de Saída"),
+    x=alt.X("Data:T", title="Data de Saída", axis=alt.Axis(format="%d/%m/%Y")),
     y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
     tooltip=["Data", "Quantidade"]
 ).properties(width=1000, height=400)
