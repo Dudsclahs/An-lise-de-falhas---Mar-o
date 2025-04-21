@@ -107,6 +107,22 @@ if "Ano/Mes" in df_filtrado.columns:
         tooltip=["Ano/Mês", "Quantidade"]
     ).properties(width=1000, height=400)
     st.altair_chart(chart_tendencia, use_container_width=True)
+    
+# GRÁFICO 6
+if "Ano/Mes" in df_filtrado.columns:
+    st.subheader("Tendência Mensal de Manutenções")
+    tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
+    tendencia.columns = ["Ano/Mês", "Quantidade"]
+    tendencia["Ano/Mês"] = tendencia["Ano/Mês"].dt.to_timestamp()
+
+    chart_tendencia = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
+        x=alt.X("Ano/Mês:T", title="Ano/Mês", axis=alt.Axis(format="%b/%Y", labelAngle=-45)),
+        y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
+        tooltip=[alt.Tooltip("Ano/Mês:T", title="Mês"), alt.Tooltip("Quantidade:Q")]
+    ).properties(width=1000, height=400)
+
+    st.altair_chart(chart_tendencia, use_container_width=True)
+
 
 # GRÁFICO 7
 st.subheader("Dias com Maior Número de Abertura de OS")
