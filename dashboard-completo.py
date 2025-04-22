@@ -56,9 +56,11 @@ st.sidebar.header("Filtro de Período")
 data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01"))
 data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
 
-# Ajuste para filtrar com base na coluna 'Entrada' se existir, senão manter df inteiro
+# Filtro aplicado às colunas 'Entrada' e 'Saída' se existirem
 if "Entrada" in df.columns:
     df = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))]
+if "Saída" in df.columns:
+    df = df[(df["Saída"] >= pd.to_datetime(data_inicio)) & (df["Saída"] <= pd.to_datetime(data_fim))]
 
 origens = sorted(df["Origem"].dropna().unique())
 origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
