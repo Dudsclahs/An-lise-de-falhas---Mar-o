@@ -62,15 +62,19 @@ st.sidebar.header("Filtro de Período")
 data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01"))
 data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
 
-# Aplica o filtro apenas para os gráficos 1 a 5, 7 a 10
-df_periodo = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))]
-
 # Filtro de origem
 origens = sorted(df["Origem"].dropna().unique())
 origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
-df_filtrado = df_periodo[df_periodo["Origem"] == origem_selecionada]
 
-# GRÁFICO 1
+# Filtros aplicados
+filtro_entrada = (df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))
+filtro_saida = (df["Saída"] >= pd.to_datetime(data_inicio)) & (df["Saída"] <= pd.to_datetime(data_fim))
+
+# Base filtrada para os gráficos 1 a 5, 7 a 10
+df_filtrado = df[filtro_entrada & (df["Origem"] == origem_selecionada)]
+df_saida_filtrado = df[filtro_saida & (df["Origem"] == origem_selecionada)]
+
+# GRÁFICO 1 - Top 10 Tipos de Falha
 if "Causa manutenção" in df_filtrado.columns:
     tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
     tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
@@ -82,7 +86,7 @@ if "Causa manutenção" in df_filtrado.columns:
     st.subheader("Gráfico 1 - Top 10 Tipos de Falha")
     st.altair_chart(chart1, use_container_width=True)
 
-# GRÁFICO 2
+# GRÁFICO 2 - Número de OS por Frota
 os_por_frota = df_filtrado["Número de frota"].value_counts().head(10).reset_index()
 os_por_frota.columns = ["Frota", "OS"]
 chart2 = alt.Chart(os_por_frota).mark_bar(color="green").encode(
@@ -93,78 +97,79 @@ chart2 = alt.Chart(os_por_frota).mark_bar(color="green").encode(
 st.subheader("Gráfico 2 - Top 10 Número de OS por Frota")
 st.altair_chart(chart2, use_container_width=True)
 
-# GRÁFICO 3
-tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
-tempo_por_frota.columns = ["Frota", "Tempo (h)"]
-tempo_top = tempo_por_frota.sort_values("Tempo (h)", ascending=False).head(10)
+# GRÁFICO 3 - Tempo Total por Frota
+tempo_total = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
+tempo_total.columns = ["Frota", "Tempo (h)"]
+tempo_top = tempo_total.sort_values("Tempo (h)", ascending=False).head(10)
 chart3 = alt.Chart(tempo_top).mark_bar(color="green").encode(
     y=alt.Y("Frota:N", sort="-x"),
     x=alt.X("Tempo (h):Q"),
     tooltip=["Frota", "Tempo (h)"]
 ).properties(width=800, height=400)
-st.subheader("Gráfico 3 - Top 10 Tempo de Permanência por Frota")
+st.subheader("Gráfico 3 - Top 10 Tempo Total de Permanência por Frota (h)")
 st.altair_chart(chart3, use_container_width=True)
 
-# GRÁFICO 4
-df_top10_periodo = tempo_top.iloc[1:11]
-chart4 = alt.Chart(df_top10_periodo).mark_bar(color="green").encode(
-    y=alt.Y("Frota:N", sort="-x"),
-    x=alt.X("Tempo (h):Q"),
-    tooltip=["Frota", "Tempo (h)"]
-).properties(width=800, height=400)
-st.subheader("Gráfico 4 - Tempo de Permanência no Período (sem a maior)")
-st.altair_chart(chart4, use_container_width=True)
+# GRÁFICO 4 - Tempo Total exceto Top 1
+df_temp = tempo_total.copy()
+if not df_temp.empty:
+    top1 = df_temp.sort_values("Tempo (h)", ascending=False).iloc[0]["Frota"]
+    df_temp = df_temp[df_temp["Frota"] != top1]
+    top10_restante = df_temp.sort_values("Tempo (h)", ascending=False).head(10)
+    chart4 = alt.Chart(top10_restante).mark_bar(color="green").encode(
+        y=alt.Y("Frota:N", sort="-x"),
+        x=alt.X("Tempo (h):Q"),
+        tooltip=["Frota", "Tempo (h)"]
+    ).properties(width=800, height=400)
+    st.subheader("Gráfico 4 - Top 10 Tempo de Permanência por Frota no Período (exceto Top 1)")
+    st.altair_chart(chart4, use_container_width=True)
 
-# GRÁFICO 5
-componentes = df_filtrado["Componente Detectado"].value_counts().reset_index()
-componentes.columns = ["Componente", "Ocorrências"]
-chart5 = alt.Chart(componentes).mark_bar(color="green").encode(
+# GRÁFICO 5 - Ocorrências por Componente
+ocorrencias_comp = df_filtrado["Componente Detectado"].value_counts().reset_index()
+ocorrencias_comp.columns = ["Componente", "Ocorrências"]
+chart5 = alt.Chart(ocorrencias_comp).mark_bar(color="green").encode(
     y=alt.Y("Componente:N", sort="-x"),
     x=alt.X("Ocorrências:Q"),
     tooltip=["Componente", "Ocorrências"]
 ).properties(width=800, height=400)
-st.subheader("Gráfico 5 - Ocorrências por Componente")
+st.subheader("Gráfico 5 - Ocorrências por Componente (Descrição da OS)")
 st.altair_chart(chart5, use_container_width=True)
 
-# GRÁFICO 6 - Entrada Diária
-df_entrada = df_filtrado[df_filtrado["Entrada"].notna()]
-entrada_diaria = df_entrada.groupby(df_entrada["Entrada"].dt.strftime("%d/%m"))["Boletim"].count().reset_index()
-entrada_diaria.columns = ["Dia", "Quantidade"]
-chart7 = alt.Chart(entrada_diaria).mark_bar(color="green").encode(
-    x=alt.X("Dia:N", title="Data"),
-    y=alt.Y("Quantidade:Q", title="Entradas"),
-    tooltip=["Dia", "Quantidade"]
+# GRÁFICO 7 - Tendência Diária de Entrada de OS
+tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].groupby("Entrada")["Boletim"].count().reset_index()
+tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
+chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
+    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
+    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
+    tooltip=["Data de Entrada", "Quantidade"]
 ).properties(width=800, height=400)
-st.subheader("Gráfico 7 - Entradas Diárias de OS")
+st.subheader("Gráfico 7 - Tendência Diária de Entrada de OS")
 st.altair_chart(chart7, use_container_width=True)
 
-# GRÁFICO 7 - Saída Diária
-df_saida = df_filtrado[df_filtrado["Saída"].notna()]
-saida_diaria = df_saida.groupby(df_saida["Saída"].dt.strftime("%d/%m"))["Boletim"].count().reset_index()
-saida_diaria.columns = ["Dia", "Quantidade"]
-chart8 = alt.Chart(saida_diaria).mark_bar(color="green").encode(
-    x=alt.X("Dia:N", title="Data"),
-    y=alt.Y("Quantidade:Q", title="Saídas"),
-    tooltip=["Dia", "Quantidade"]
+# GRÁFICO 8 - Tendência Diária de Saída de OS
+tendencia_saida = df_saida_filtrado[df_saida_filtrado["Saída"].notna()].groupby("Saída")["Boletim"].count().reset_index()
+tendencia_saida.columns = ["Data de Saída", "Quantidade"]
+chart8 = alt.Chart(tendencia_saida).mark_bar(color="green").encode(
+    x=alt.X("Data de Saída:T", title="Data de Saída", axis=alt.Axis(format="%d/%m")),
+    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
+    tooltip=["Data de Saída", "Quantidade"]
 ).properties(width=800, height=400)
-st.subheader("Gráfico 8 - Saídas Diárias de OS")
+st.subheader("Gráfico 8 - Tendência Diária de Saída de OS")
 st.altair_chart(chart8, use_container_width=True)
 
-# GRÁFICO 8 - Frotas mais Frequentes
+# GRÁFICO 9 - Frotas mais Frequentes (Descrição da Frota)
 if "Descrição  frota" in df_filtrado.columns:
-    descricao_frota = df_filtrado["Descrição  frota"].value_counts().reset_index()
+    descricao_frota = df_filtrado["Descrição  frota"].value_counts().reset_index().head(10)
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
-    descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False).head(10)
     chart9 = alt.Chart(descricao_frota).mark_bar(color="green").encode(
         y=alt.Y("Descrição da Frota:N", sort="-x"),
         x=alt.X("Ocorrências:Q"),
         tooltip=["Descrição da Frota", "Ocorrências"]
     ).properties(width=800, height=400)
-    st.subheader("Gráfico 9 - Frotas mais Frequentes")
+    st.subheader("Gráfico 9 - Frotas mais Frequentes (Descrição da Frota)")
     st.altair_chart(chart9, use_container_width=True)
 
-# GRÁFICO 9 - Tipo de Manutenção
-if "Tipo de manutenção" in df_filtrado.columns:
+# GRÁFICO 10 - Tipo de Manutenção
+if "Tipo de manutenção" in df_filtrado.columns and not df_filtrado["Tipo de manutenção"].dropna().empty:
     tipo_manutencao = df_filtrado["Tipo de manutenção"].value_counts().reset_index()
     tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
     chart10 = alt.Chart(tipo_manutencao).mark_bar(color="green").encode(
@@ -172,10 +177,10 @@ if "Tipo de manutenção" in df_filtrado.columns:
         x=alt.X("Ocorrências:Q"),
         tooltip=["Tipo de Manutenção", "Ocorrências"]
     ).properties(width=800, height=400)
-    st.subheader("Gráfico 10 - Tipo de Manutenção")
+    st.subheader("Gráfico 10 - Distribuição por Tipo de Manutenção")
     st.altair_chart(chart10, use_container_width=True)
 
-# GRÁFICO 10 - Tendência Mensal de Manutenções (não filtrado)
+# GRÁFICO FINAL - Tendência Mensal de Manutenções (não filtrado)
 tendencia_geral = df.groupby("Ano/Mes")["Boletim"].count().reset_index()
 tendencia_geral.columns = ["Ano/Mês", "Quantidade"]
 chart6 = alt.Chart(tendencia_geral).mark_line(point=True, color="green").encode(
