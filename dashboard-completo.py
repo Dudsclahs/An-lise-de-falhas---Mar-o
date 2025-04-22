@@ -133,7 +133,7 @@ if "Ano/Mes" in df_filtrado.columns:
     tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
     tendencia.columns = ["Ano/Mês", "Quantidade"]
     chart6 = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
-        x=alt.X("Ano/Mês:T", title="Ano/Mês", axis=alt.Axis(format="%b/%Y")),
+        x=alt.X("Ano/Mês:T", title="Ano/Mês", axis=alt.Axis(format="%d/%m/%Y")),
         y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
         tooltip=["Ano/Mês", "Quantidade"]
     ).properties(width=800, height=400)
