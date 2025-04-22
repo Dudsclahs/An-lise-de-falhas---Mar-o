@@ -58,7 +58,7 @@ data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("01-
 data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
 
 if "Entrada" in df.columns:
-    df = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))]
+    df = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim)), axis=alt.Axis(format="%d/%m")),]
 
 origens = sorted(df["Origem"].dropna().unique())
 origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
@@ -144,7 +144,7 @@ df_entrada = df_filtrado[df_filtrado["Entrada"].notna() & (df_filtrado["Entrada"
 tendencia_entrada = df_entrada.groupby("Entrada")["Boletim"].count().reset_index()
 tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
 chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
-    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m/%Y")),
+    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
     y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
     tooltip=["Data de Entrada", "Quantidade"]
 ).properties(width=800, height=400)
@@ -156,7 +156,7 @@ df_saida = df_filtrado[df_filtrado["Saída"].notna() & (df_filtrado["Saída"] >=
 tendencia_saida = df_saida.groupby("Saída")["Boletim"].count().reset_index()
 tendencia_saida.columns = ["Data de Saída", "Quantidade"]
 chart8 = alt.Chart(tendencia_saida).mark_bar(color="green").encode(
-    x=alt.X("Data de Saída:T", title="Data de Saída", axis=alt.Axis(format="%d/%m/%Y")),
+    x=alt.X("Data de Saída:T", title="Data de Saída", axis=alt.Axis(format="%d/%m")),
     y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
     tooltip=["Data de Saída", "Quantidade"]
 ).properties(width=800, height=400)
