@@ -23,7 +23,7 @@ def carregar_dados():
 
     if "Entrada" in df.columns:
         df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
-        df["Ano/Mes"] = df["Entrada"].dt.to_period("M")
+        df["Ano/Mes"] = df["Entrada"].dt.to_period("M").dt.to_timestamp()
 
     if "Saída Real" in df.columns:
         df["Saída"] = pd.to_datetime(df["Saída Real"], errors="coerce")
@@ -59,8 +59,8 @@ df["Componente Detectado"] = df["Descrição do Trabalho / Observação (Ordem d
 
 # Filtro lateral de período
 st.sidebar.header("Filtro de Período")
-data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01"), format="DD/MM/YYYY")
-data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"), format="DD/MM/YYYY")
+data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01"))
+data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
 
 # Aplica o filtro apenas para os gráficos 1 a 5, 7 a 10
 df_periodo = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))]
@@ -175,13 +175,13 @@ if "Tipo de manutenção" in df_filtrado.columns:
     st.subheader("Gráfico 10 - Tipo de Manutenção")
     st.altair_chart(chart10, use_container_width=True)
 
-# GRÁFICO 10 - Tendência Mensal (fora do filtro)
+# GRÁFICO 10 - Tendência Mensal de Manutenções (não filtrado)
 tendencia_geral = df.groupby("Ano/Mes")["Boletim"].count().reset_index()
 tendencia_geral.columns = ["Ano/Mês", "Quantidade"]
 chart6 = alt.Chart(tendencia_geral).mark_line(point=True, color="green").encode(
     x=alt.X("Ano/Mês:T", title="Ano/Mês"),
-    y=alt.Y("Quantidade:Q", title="Manutenções por Mês"),
+    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
     tooltip=["Ano/Mês", "Quantidade"]
 ).properties(width=800, height=400)
-st.subheader("Gráfico 6 - Tendência Mensal de Manutenções (Total)")
+st.subheader("Gráfico 6 - Tendência Mensal de Manutenções")
 st.altair_chart(chart6, use_container_width=True)
