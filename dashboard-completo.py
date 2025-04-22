@@ -58,7 +58,7 @@ data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("202
 data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
 
 # GRÁFICO 1
-if "Causa manutenção" in df_filtrado.columns and not df_filtrado["Causa manutenção"].dropna().empty:
+if "Causa manutenção" in df_filtrado.columns and not df_filtrado.get("Causa manutenção").dropna().empty:
     tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
     tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
     chart = alt.Chart(tipo_falha).mark_bar(color="green").encode(
