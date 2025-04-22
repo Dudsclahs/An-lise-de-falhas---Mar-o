@@ -51,18 +51,15 @@ def classificar_componente(texto):
 df = carregar_dados()
 df["Componente Detectado"] = df["Descrição do Trabalho / Observação (Ordem de serviço)"].apply(classificar_componente)
 
+# FILTRO DE PERÍODO PERSONALIZADO
+st.sidebar.header("Filtro de Período")
+data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01"))
+data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
+df = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))]
+
 origens = sorted(df["Origem"].dropna().unique())
 origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
 df_filtrado = df[df["Origem"] == origem_selecionada]
-
-def plot_horizontal_bar(data, x_col, y_col, tooltip, titulo):
-    chart = alt.Chart(data).mark_bar(color="green").encode(
-        y=alt.Y(f"{y_col}:N", sort="-x", axis=alt.Axis(labelLimit=400, titleLimit=400)),
-        x=alt.X(f"{x_col}:Q", axis=alt.Axis(title="Quantidade")),
-        tooltip=tooltip
-    ).properties(width=1000, height=400)
-    st.subheader(titulo)
-    st.altair_chart(chart, use_container_width=True)
 
 # GRÁFICO 1
 if "Causa manutenção" in df_filtrado.columns:
