@@ -51,30 +51,24 @@ def classificar_componente(texto):
 df = carregar_dados()
 df["Componente Detectado"] = df["Descrição do Trabalho / Observação (Ordem de serviço)"].apply(classificar_componente)
 
-# FILTRO DE PERÍODO PERSONALIZADO
-st.sidebar.header("Filtro de Período")
-data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01"))
-data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
-
-# Filtro aplicado às colunas 'Entrada' se existir
-if "Entrada" in df.columns:
-    df = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))]
-
 origens = sorted(df["Origem"].dropna().unique())
 origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
 df_filtrado = df[df["Origem"] == origem_selecionada]
+
+def plot_horizontal_bar(data, x_col, y_col, tooltip, titulo):
+    chart = alt.Chart(data).mark_bar(color="green").encode(
+        y=alt.Y(f"{y_col}:N", sort="-x", axis=alt.Axis(labelLimit=400, titleLimit=400)),
+        x=alt.X(f"{x_col}:Q", axis=alt.Axis(title="Quantidade")),
+        tooltip=tooltip
+    ).properties(width=1000, height=400)
+    st.subheader(titulo)
+    st.altair_chart(chart, use_container_width=True)
 
 # GRÁFICO 1
 if "Causa manutenção" in df_filtrado.columns:
     tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
     tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
-    chart = alt.Chart(tipo_falha).mark_bar(color="green").encode(
-        y=alt.Y("Tipo de Falha:N", sort="-x"),
-        x=alt.X("Quantidade:Q"),
-        tooltip=["Tipo de Falha", "Quantidade"]
-    ).properties(width=800, height=400)
-    st.subheader("Gráfico 1 - Top 10 Tipos de Falha")
-    st.altair_chart(chart, use_container_width=True)
+    plot_horizontal_bar(tipo_falha, "Quantidade", "Tipo de Falha", ["Tipo de Falha", "Quantidade"], "Gráfico 1 - Top 10 - Tipos de Falha")
 
 # GRÁFICO 2
 os_por_frota = df_filtrado["Número de frota"].value_counts().head(10).reset_index()
