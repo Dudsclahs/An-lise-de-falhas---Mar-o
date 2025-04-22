@@ -68,7 +68,13 @@ df_filtrado = df[df["Origem"] == origem_selecionada]
 if "Causa manutenção" in df_filtrado.columns:
     tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
     tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
-    plot_horizontal_bar(tipo_falha, "Quantidade", "Tipo de Falha", ["Tipo de Falha", "Quantidade"], "Gráfico 1 - Top 10 - Tipos de Falha")
+    chart = alt.Chart(tipo_falha).mark_bar(color="green").encode(
+        y=alt.Y("Tipo de Falha:N", sort="-x"),
+        x=alt.X("Quantidade:Q"),
+        tooltip=["Tipo de Falha", "Quantidade"]
+    ).properties(width=800, height=400)
+    st.subheader("Gráfico 1 - Top 10 Tipos de Falha")
+    st.altair_chart(chart, use_container_width=True)
 
 # GRÁFICO 2
 os_por_frota = df_filtrado["Número de frota"].value_counts().head(10).reset_index()
