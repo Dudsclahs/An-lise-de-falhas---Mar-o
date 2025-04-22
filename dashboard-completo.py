@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
+st.set_page_config(layout="wide")
 st.title("Dashboard de Manutenção - Consolidado Final")
 
 @st.cache_data
@@ -56,7 +57,6 @@ st.sidebar.header("Filtro de Período")
 data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01"))
 data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
 
-# Filtro aplicado às colunas 'Entrada' se existir
 if "Entrada" in df.columns:
     df = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))]
 
@@ -133,18 +133,18 @@ if "Ano/Mes" in df_filtrado.columns:
     tendencia = df_filtrado.groupby("Ano/Mes")["Boletim"].count().reset_index()
     tendencia.columns = ["Ano/Mês", "Quantidade"]
     chart6 = alt.Chart(tendencia).mark_line(point=True, color="green").encode(
-        x=alt.X("Ano/Mês:T", title="Ano/Mês"),
+        x=alt.X("Ano/Mês:T", title="Ano/Mês", axis=alt.Axis(format="%b/%Y")),
         y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
         tooltip=["Ano/Mês", "Quantidade"]
     ).properties(width=800, height=400)
     st.altair_chart(chart6, use_container_width=True)
 
 # GRÁFICO 7 - Tendência Diária de Entrada
-df_entrada = df_filtrado[df_filtrado["Entrada"].notna() & (df_filtrado["Entrada"] >= pd.to_datetime("2025-03-01"))]
+df_entrada = df_filtrado[df_filtrado["Entrada"].notna() & (df_filtrado["Entrada"] >= pd.to_datetime(data_inicio))]
 tendencia_entrada = df_entrada.groupby("Entrada")["Boletim"].count().reset_index()
 tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
 chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
-    x=alt.X("Data de Entrada:T", title="Data de Entrada"),
+    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m/%Y")),
     y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
     tooltip=["Data de Entrada", "Quantidade"]
 ).properties(width=800, height=400)
@@ -152,11 +152,11 @@ st.subheader("Gráfico 7 - Tendência Diária de Entrada de OS")
 st.altair_chart(chart7, use_container_width=True)
 
 # GRÁFICO 8 - Tendência Diária de Saída
-df_saida = df_filtrado[df_filtrado["Saída"].notna() & (df_filtrado["Saída"] >= pd.to_datetime("2025-03-01"))]
+df_saida = df_filtrado[df_filtrado["Saída"].notna() & (df_filtrado["Saída"] >= pd.to_datetime(data_inicio))]
 tendencia_saida = df_saida.groupby("Saída")["Boletim"].count().reset_index()
 tendencia_saida.columns = ["Data de Saída", "Quantidade"]
 chart8 = alt.Chart(tendencia_saida).mark_bar(color="green").encode(
-    x=alt.X("Data de Saída:T", title="Data de Saída"),
+    x=alt.X("Data de Saída:T", title="Data de Saída", axis=alt.Axis(format="%d/%m/%Y")),
     y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
     tooltip=["Data de Saída", "Quantidade"]
 ).properties(width=800, height=400)
@@ -167,7 +167,7 @@ st.altair_chart(chart8, use_container_width=True)
 if "Descrição  frota" in df_filtrado.columns:
     descricao_frota = df_filtrado["Descrição  frota"].value_counts().reset_index()
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
-    descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False).head(20)
+    descricao_frota = descricao_frota.sort_values("Ocorrências", ascending=False).head(10)
     chart9 = alt.Chart(descricao_frota).mark_bar(color="green").encode(
         y=alt.Y("Descrição da Frota:N", sort="-x"),
         x=alt.X("Ocorrências:Q"),
@@ -188,3 +188,4 @@ if "Tipo de manutenção" in df_filtrado.columns and not df_filtrado["Tipo de ma
     ).properties(width=800, height=400)
     st.subheader("Gráfico 10 - Distribuição por Tipo de Manutenção")
     st.altair_chart(chart10, use_container_width=True)
+
