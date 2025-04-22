@@ -1,6 +1,8 @@
+
 import streamlit as st
 import pandas as pd
 import altair as alt
+from datetime import datetime, date
 
 st.set_page_config(layout="wide")
 st.title("Dashboard de Manutenção - Consolidado Final")
@@ -52,27 +54,29 @@ def classificar_componente(texto):
 df = carregar_dados()
 df["Componente Detectado"] = df["Descrição do Trabalho / Observação (Ordem de serviço)"].apply(classificar_componente)
 
-# FILTRO DE PERÍODO PERSONALIZADO 
+# FILTRO DE PERÍODO PERSONALIZADO
 st.sidebar.header("Filtro de Período")
-data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01"))
-data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
+data_inicio = st.sidebar.date_input("Data de Início", value=date(2025, 3, 1))
+data_fim = st.sidebar.date_input("Data de Fim", value=date.today())
 
-# GRÁFICO 1
+if "Entrada" in df.columns:
+    df = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))]
+
 origens = sorted(df["Origem"].dropna().unique())
 origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
 df_filtrado = df[df["Origem"] == origem_selecionada]
 
+# GRÁFICO 1
 if "Causa manutenção" in df_filtrado.columns:
-    if not df_filtrado["Causa manutenção"].dropna().empty:
-        tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
-        tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
-        chart = alt.Chart(tipo_falha).mark_bar(color="green").encode(
-            y=alt.Y("Tipo de Falha:N", sort="-x"),
-            x=alt.X("Quantidade:Q"),
-            tooltip=["Tipo de Falha", "Quantidade"]
-        ).properties(width=800, height=400)
-        st.subheader("Gráfico 1 - Top 10 Tipos de Falha")
-        st.altair_chart(chart, use_container_width=True)
+    tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
+    tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
+    chart = alt.Chart(tipo_falha).mark_bar(color="green").encode(
+        y=alt.Y("Tipo de Falha:N", sort="-x"),
+        x=alt.X("Quantidade:Q"),
+        tooltip=["Tipo de Falha", "Quantidade"]
+    ).properties(width=800, height=400)
+    st.subheader("Gráfico 1 - Top 10 Tipos de Falha")
+    st.altair_chart(chart, use_container_width=True)
 
 # GRÁFICO 2
 os_por_frota = df_filtrado["Número de frota"].value_counts().head(10).reset_index()
