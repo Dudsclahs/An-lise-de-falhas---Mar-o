@@ -79,7 +79,13 @@ if "Causa manutenção" in df_filtrado.columns:
 # GRÁFICO 2
 os_por_frota = df_filtrado["Número de frota"].value_counts().head(10).reset_index()
 os_por_frota.columns = ["Frota", "OS"]
-plot_horizontal_bar(os_por_frota, "OS", "Frota", ["Frota", "OS"], "Gráfico 2 - Top 10 - Número de OS por Frota")
+chart2 = alt.Chart(os_por_frota).mark_bar(color="green").encode(
+    y=alt.Y("Frota:N", sort="-x"),
+    x=alt.X("OS:Q"),
+    tooltip=["Frota", "OS"]
+).properties(width=800, height=400)
+st.subheader("Gráfico 2 - Top 10 Número de OS por Frota")
+st.altair_chart(chart2, use_container_width=True)
 
 # GRÁFICO 3
 tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
