@@ -187,4 +187,3 @@ if "Tipo de manutenção" in df_filtrado.columns and not df_filtrado["Tipo de ma
     ).properties(width=800, height=400)
     st.subheader("Gráfico 10 - Distribuição por Tipo de Manutenção")
     st.altair_chart(chart10, use_container_width=True)
-
