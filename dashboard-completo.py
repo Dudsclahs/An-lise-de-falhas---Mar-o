@@ -58,6 +58,10 @@ data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("202
 data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
 
 # GRÁFICO 1
+origens = sorted(df["Origem"].dropna().unique())
+origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
+df_filtrado = df[df["Origem"] == origem_selecionada]
+
 if "Causa manutenção" in df_filtrado.columns:
     if not df_filtrado["Causa manutenção"].dropna().empty:
         tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
