@@ -91,25 +91,41 @@ st.altair_chart(chart2, use_container_width=True)
 tempo_por_frota = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
 tempo_por_frota.columns = ["Frota", "Tempo (h)"]
 tempo_top = tempo_por_frota.sort_values("Tempo (h)", ascending=False).head(10)
-plot_horizontal_bar(tempo_top, "Tempo (h)", "Frota", ["Frota", "Tempo (h)"], "Gráfico 3 - Top 10 - Tempo Total de Permanência por Frota (h)")
+chart3 = alt.Chart(tempo_top).mark_bar(color="green").encode(
+    y=alt.Y("Frota:N", sort="-x"),
+    x=alt.X("Tempo (h):Q"),
+    tooltip=["Frota", "Tempo (h)"]
+).properties(width=800, height=400)
+st.subheader("Gráfico 3 - Top 10 Tempo Total de Permanência por Frota (h)")
+st.altair_chart(chart3, use_container_width=True)
 
 # GRÁFICO 4
-df_periodo = df_filtrado[df_filtrado["Entrada"] >= pd.to_datetime("2025-03-18")]
-df_periodo_tempo = df_periodo.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
+df_periodo_tempo = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
 df_periodo_tempo.columns = ["Frota", "Tempo (h)"]
 if not df_periodo_tempo.empty:
     top1 = df_periodo_tempo.sort_values("Tempo (h)", ascending=False).iloc[0]["Frota"]
     df_periodo_tempo = df_periodo_tempo[df_periodo_tempo["Frota"] != top1]
     df_top10_periodo = df_periodo_tempo.sort_values("Tempo (h)", ascending=False).head(10)
-    plot_horizontal_bar(df_top10_periodo, "Tempo (h)", "Frota", ["Frota", "Tempo (h)"], "Gráfico 4 - Tempo de Permanência por Frota (a partir de 18/03/2025)")
+    chart4 = alt.Chart(df_top10_periodo).mark_bar(color="green").encode(
+        y=alt.Y("Frota:N", sort="-x"),
+        x=alt.X("Tempo (h):Q"),
+        tooltip=["Frota", "Tempo (h)"]
+    ).properties(width=800, height=400)
+    st.subheader("Gráfico 4 - Top 10 Tempo de Permanência por Frota no Período")
+    st.altair_chart(chart4, use_container_width=True)
 else:
-    st.info("Nenhum dado encontrado a partir de 18/03/2025 para essa origem.")
+    st.info("Nenhum dado encontrado no período selecionado para essa origem.")
 
 # GRÁFICO 5
 agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_index()
 agrupado_componentes.columns = ["Componente", "Ocorrências"]
-plot_horizontal_bar(agrupado_componentes, "Ocorrências", "Componente", ["Componente", "Ocorrências"], "Gráfico 5 - Ocorrências por Componente (Descrição da OS)")
-
+chart5 = alt.Chart(agrupado_componentes).mark_bar(color="green").encode(
+    y=alt.Y("Componente:N", sort="-x"),
+    x=alt.X("Ocorrências:Q"),
+    tooltip=["Componente", "Ocorrências"]
+).properties(width=800, height=400)
+st.subheader("Gráfico 5 - Ocorrências por Componente (Descrição da OS)")
+st.altair_chart(chart5, use_container_width=True)
 # GRÁFICO 6
 if "Ano/Mes" in df_filtrado.columns:
     st.subheader("Gráfico 6 - Tendência Mensal de Manutenções")
