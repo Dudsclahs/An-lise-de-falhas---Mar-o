@@ -1,8 +1,6 @@
-
 import streamlit as st
 import pandas as pd
 import altair as alt
-from datetime import datetime, date
 
 st.set_page_config(layout="wide")
 st.title("Dashboard de Manutenção - Consolidado Final")
@@ -56,11 +54,11 @@ df["Componente Detectado"] = df["Descrição do Trabalho / Observação (Ordem d
 
 # FILTRO DE PERÍODO PERSONALIZADO
 st.sidebar.header("Filtro de Período")
-data_inicio = st.sidebar.date_input("Data de Início", value=date(2025, 3, 1))
-data_fim = st.sidebar.date_input("Data de Fim", value=date.today())
+data_inicio = pd.to_datetime(st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01")))
+data_fim = pd.to_datetime(st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today")))
 
 if "Entrada" in df.columns:
-    df = df[(df["Entrada"] >= pd.to_datetime(data_inicio)) & (df["Entrada"] <= pd.to_datetime(data_fim))]
+    df = df[(df["Entrada"] >= data_inicio) & (df["Entrada"] <= data_fim)]
 
 origens = sorted(df["Origem"].dropna().unique())
 origem_selecionada = st.selectbox("Selecione o tipo de manutenção:", origens)
@@ -115,8 +113,6 @@ if not df_periodo_tempo.empty:
     ).properties(width=800, height=400)
     st.subheader("Gráfico 4 - Top 10 Tempo de Permanência por Frota no Período")
     st.altair_chart(chart4, use_container_width=True)
-else:
-    st.info("Nenhum dado encontrado no período selecionado para essa origem.")
 
 # GRÁFICO 5
 agrupado_componentes = df_filtrado["Componente Detectado"].value_counts().reset_index()
