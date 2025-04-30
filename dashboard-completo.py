@@ -59,7 +59,7 @@ df["Componente Detectado"] = df["Descrição do Trabalho / Observação (Ordem d
 
 # Filtro lateral de período
 st.sidebar.header("Filtro de Período")
-data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("2025-03-01"))
+data_inicio = st.sidebar.date_input("Data de Início", value=pd.to_datetime("01-03-2025"))
 data_fim = st.sidebar.date_input("Data de Fim", value=pd.to_datetime("today"))
 
 # Filtro de origem
