@@ -1,4 +1,4 @@
- import streamlit as st
+import streamlit as st
 import pandas as pd
 import altair as alt
 
@@ -135,15 +135,15 @@ st.subheader("Gráfico 5 - Ocorrências por Componente (Descrição da OS)")
 st.altair_chart(chart5, use_container_width=True)
 
 # GRÁFICO 6 - Tendência Diária de Entrada de OS
-#tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].groupby("Entrada")["Boletim"].count().reset_index()
-#tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
-#chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
-#    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
-#    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
-#    tooltip=["Data de Entrada", "Quantidade"]
-#).properties(width=800, height=400)
-#st.subheader("Gráfico 6 - Tendência Diária de Entrada de OS")
-#st.altair_chart(chart7, use_container_width=True)
+tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].groupby("Entrada")["Boletim"].count().reset_index()
+tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
+chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
+    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
+    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
+    tooltip=["Data de Entrada", "Quantidade"]
+).properties(width=800, height=400)
+st.subheader("Gráfico 6 - Tendência Diária de Entrada de OS")
+st.altair_chart(chart7, use_container_width=True)
 
 # GRÁFICO 7 - Tendência Diária de Entrada de OS
 df_entrada_limp = df_filtrado[df_filtrado["Entrada"].notna()].copy()
