@@ -146,14 +146,14 @@ st.subheader("Gráfico 6 - Tendência Diária de Entrada de OS")
 st.altair_chart(chart7, use_container_width=True)
 
 # GRÁFICO 7 - Tendência Diária de Entrada de OS
-df_entrada_limp = df_filtrado[df_filtrado["Entrada"].notna()].copy()
-df_entrada_limp["Entrada"] = pd.to_datetime(df_entrada_limp["Entrada"]).dt.normalize()  # remove horário
-tendencia_entrada = df_entrada_limp.groupby("Entrada")["Boletim"].count().reset_index()
+tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].copy()
+tendencia_entrada["Data de Entrada"] = tendencia_entrada["Entrada"].dt.date
+tendencia_entrada = tendencia_entrada.groupby("Data de Entrada")["Boletim"].count().reset_index()
 tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
 
 chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
-    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m", labelAngle=0)),
-    y=alt.Y("Quantidade:Q", title="Quantidade de OS", axis=alt.Axis(tickMinStep=1)),
+    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
+    y=alt.Y("Quantidade:Q", title="Quantidade de OS", tickMinStep=1),
     tooltip=["Data de Entrada", "Quantidade"]
 ).properties(width=800, height=400)
 
