@@ -146,15 +146,19 @@ st.subheader("Gráfico 6 - Tendência Diária de Entrada de OS")
 st.altair_chart(chart7, use_container_width=True)
 
 # GRÁFICO 7 - Tendência Diária de Entrada de OS
-tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].groupby("Entrada")["Boletim"].count().reset_index()
+df_filtrado["Data de Entrada Dia"] = df_filtrado["Entrada"].dt.date  # <-- extrai apenas a data (sem hora)
+tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].groupby("Data de Entrada Dia")["Boletim"].count().reset_index()
 tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
+
 chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
     x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m", labelAngle=0)),
     y=alt.Y("Quantidade:Q", title="Quantidade de OS", scale=alt.Scale(nice=False), axis=alt.Axis(tickMinStep=1)),
     tooltip=["Data de Entrada", "Quantidade"]
 ).properties(width=800, height=400)
+
 st.subheader("Gráfico 7 - Tendência Diária de Entrada de OS")
 st.altair_chart(chart7, use_container_width=True)
+
 
 # GRÁFICO 8 - Frotas mais Frequentes (Descrição da Frota)
 if "Descrição  frota" in df_filtrado.columns:
