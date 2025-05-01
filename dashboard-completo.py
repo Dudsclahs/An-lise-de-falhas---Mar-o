@@ -136,13 +136,8 @@ st.altair_chart(chart5, use_container_width=True)
 
 # GRÁFICO 6 - Tendência Diária de Entrada de OS
 df_filtrado["Data de Entrada Dia"] = pd.to_datetime(df_filtrado["Entrada"].dt.date)  # mantém apenas a data
-tendencia_entrada = (
-    df_filtrado[df_filtrado["Entrada"].notna()]
-    .groupby("Data de Entrada Dia")["Boletim"]
-    .count()
-    .reset_index()
-)
-
+df_filtrado["Data Entrada Dia"] = df_filtrado["Entrada"].dt.date
+tendencia_entrada = df_filtrado.groupby("Data Entrada Dia")["Boletim"].count().reset_index()
 tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
 
 chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
