@@ -135,17 +135,6 @@ st.subheader("Gráfico 5 - Ocorrências por Componente (Descrição da OS)")
 st.altair_chart(chart5, use_container_width=True)
 
 # GRÁFICO 6 - Tendência Diária de Entrada de OS
-tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].groupby("Entrada")["Boletim"].count().reset_index()
-tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
-chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
-    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
-    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
-    tooltip=["Data de Entrada", "Quantidade"]
-).properties(width=800, height=400)
-st.subheader("Gráfico 6 - Tendência Diária de Entrada de OS")
-st.altair_chart(chart7, use_container_width=True)
-
-# GRÁFICO 7 - Tendência Diária de Entrada de OS
 tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].copy()
 tendencia_entrada["Data de Entrada"] = tendencia_entrada["Entrada"].dt.date
 tendencia_entrada = (
@@ -165,7 +154,7 @@ chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
 st.subheader("Gráfico 7 - Tendência Diária de Entrada de OS")
 st.altair_chart(chart7, use_container_width=True)
 
-# GRÁFICO 8 - Frotas mais Frequentes (Descrição da Frota)
+# GRÁFICO 7 - Frotas mais Frequentes (Descrição da Frota)
 if "Descrição  frota" in df_filtrado.columns:
     descricao_frota = df_filtrado["Descrição  frota"].value_counts().reset_index().head(10)
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
@@ -177,7 +166,7 @@ if "Descrição  frota" in df_filtrado.columns:
     st.subheader("Gráfico 8 - Frotas mais Frequentes (Descrição da Frota)")
     st.altair_chart(chart9, use_container_width=True)
 
-# GRÁFICO 9 - Tipo de Manutenção
+# GRÁFICO 8 - Tipo de Manutenção
 if "Tipo de manutenção" in df_filtrado.columns and not df_filtrado["Tipo de manutenção"].dropna().empty:
     tipo_manutencao = df_filtrado["Tipo de manutenção"].value_counts().reset_index()
     tipo_manutencao.columns = ["Tipo de Manutenção", "Ocorrências"]
@@ -189,7 +178,7 @@ if "Tipo de manutenção" in df_filtrado.columns and not df_filtrado["Tipo de ma
     st.subheader("Gráfico 9 - Distribuição por Tipo de Manutenção")
     st.altair_chart(chart10, use_container_width=True)
 
-# GRÁFICO FINAL - Tendência Mensal de Manutenções (não filtrado)
+# GRÁFICO FINAL 9 - Tendência Mensal de Manutenções (não filtrado)
 tendencia_geral = df.groupby("Ano/Mes")["Boletim"].count().reset_index()
 tendencia_geral.columns = ["Ano/Mês", "Quantidade"]
 chart6 = alt.Chart(tendencia_geral).mark_line(point=True, color="green").encode(
