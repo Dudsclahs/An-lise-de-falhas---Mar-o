@@ -142,7 +142,7 @@ tendencia_entrada = tendencia_entrada.groupby("Data de Entrada").size().reset_in
 
 # Criar gráfico com escala Y iniciando em 1
 chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
-    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
+    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m"), sort=None),
     y=alt.Y("Quantidade:Q", title="Quantidade de OS", scale=alt.Scale(domainMin=1), axis=alt.Axis(tickMinStep=1)),
     tooltip=["Data de Entrada", "Quantidade"]
 ).properties(width=800, height=400)
