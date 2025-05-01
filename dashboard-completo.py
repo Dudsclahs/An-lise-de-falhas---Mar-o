@@ -137,7 +137,7 @@ st.altair_chart(chart5, use_container_width=True)
 # GRÁFICO 6 - Tendência Diária de Entrada de OS
 # Agrupar corretamente por dia
 tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].copy()
-tendencia_entrada["Data de Entrada"] = pd.to_datetime(tendencia_entrada["Entrada"].dt.date)
+tendencia_entrada["Data de Entrada"] = tendencia_entrada["Entrada"].dt.floor("D")
 tendencia_entrada = tendencia_entrada.groupby("Data de Entrada").size().reset_index(name="Quantidade")
 
 # Criar gráfico com escala Y iniciando em 1
