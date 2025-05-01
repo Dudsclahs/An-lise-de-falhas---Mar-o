@@ -135,19 +135,19 @@ st.subheader("Gráfico 5 - Ocorrências por Componente (Descrição da OS)")
 st.altair_chart(chart5, use_container_width=True)
 
 # GRÁFICO 6 - Tendência Diária de Entrada de OS
-df_filtrado["Data de Entrada Dia"] = pd.to_datetime(df_filtrado["Entrada"].dt.date)  # mantém apenas a data
-df_filtrado["Data Entrada Dia"] = df_filtrado["Entrada"].dt.date
-tendencia_entrada = df_filtrado.groupby("Data Entrada Dia")["Boletim"].count().reset_index()
-tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
+tendencia_geral = df[df["Entrada"].notna()].copy()
+tendencia_geral["Ano/Mês"] = tendencia_geral["Entrada"].dt.to_period("M").dt.to_timestamp()
+tendencia_geral = tendencia_geral.groupby("Ano/Mês")["Boletim"].count().reset_index()
+tendencia_geral.columns = ["Ano/Mês", "Quantidade"]
 
-chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
-    x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
-    y=alt.Y("Quantidade:Q", title="Quantidade de OS", scale=alt.Scale(domainMin=1), axis=alt.Axis(tickMinStep=1)),
-    tooltip=["Data de Entrada", "Quantidade"]
+chart6 = alt.Chart(tendencia_geral).mark_line(point=True, color="green").encode(
+    x=alt.X("Ano/Mês:T", title="Ano/Mês"),
+    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
+    tooltip=["Ano/Mês", "Quantidade"]
 ).properties(width=800, height=400)
 
-st.subheader("Gráfico 7 - Tendência Diária de Entrada de OS")
-st.altair_chart(chart7, use_container_width=True)
+st.subheader("Gráfico 6 - Tendência Mensal de Manutenções")
+st.altair_chart(chart6, use_container_width=True)
 
 
 # GRÁFICO 7 - Frotas mais Frequentes (Descrição da Frota)
