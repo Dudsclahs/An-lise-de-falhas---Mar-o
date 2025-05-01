@@ -147,7 +147,7 @@ tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
 
 chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
     x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
-    y=alt.Y("Quantidade:Q", title="Quantidade de OS"),
+  y=alt.Y("Quantidade:Q", title="Quantidade de OS", scale=alt.Scale(domainMin=1), axis=alt.Axis(tickMinStep=1)),
     tooltip=["Data de Entrada", "Quantidade"]
 ).properties(width=800, height=400)
 
