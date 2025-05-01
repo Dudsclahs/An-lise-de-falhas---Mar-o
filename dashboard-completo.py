@@ -75,7 +75,7 @@ df_filtrado = df[filtro_entrada & (df["Origem"] == origem_selecionada)]
 df_saida_filtrado = df[filtro_saida & (df["Origem"] == origem_selecionada)]
 
 # GRÁFICO 1 - Top 10 Tipos de Falha
-if "Causa manutenção" in df_filtrado.columns:
+if "Causa manutenção" in df_filtrado.columns and not df_filtrado["Causa manutenção"].dropna().empty:
     tipo_falha = df_filtrado["Causa manutenção"].value_counts().head(10).reset_index()
     tipo_falha.columns = ["Tipo de Falha", "Quantidade"]
     chart1 = alt.Chart(tipo_falha).mark_bar(color="green").encode(
@@ -153,7 +153,7 @@ tendencia_entrada.columns = ["Data de Entrada", "Quantidade"]
 
 chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
     x=alt.X("Data de Entrada:T", title="Data de Entrada", axis=alt.Axis(format="%d/%m")),
-    y=alt.Y("Quantidade:Q", title="Quantidade de OS", tickMinStep=1),
+    y=alt.Y("Quantidade:Q", title="Quantidade de OS")
     tooltip=["Data de Entrada", "Quantidade"]
 ).properties(width=800, height=400)
 
