@@ -97,8 +97,8 @@ chart2 = alt.Chart(os_por_frota).mark_bar(color="green").encode(
 st.subheader("Gráfico 2 - Top 10 Número de OS por Frota")
 st.altair_chart(chart2, use_container_width=True)
 
-# GRÁFICO 3 - Tempo Total por Frota
-tempo_total = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
+# GRÁFICO 3 - Tempo Total por Frota (não filtrado por período)
+tempo_total = df.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
 tempo_total.columns = ["Frota", "Tempo (h)"]
 tempo_top = tempo_total.sort_values("Tempo (h)", ascending=False).head(10)
 chart3 = alt.Chart(tempo_top).mark_bar(color="green").encode(
@@ -109,8 +109,9 @@ chart3 = alt.Chart(tempo_top).mark_bar(color="green").encode(
 st.subheader("Gráfico 3 - Top 10 Tempo Total de Permanência por Frota (h)")
 st.altair_chart(chart3, use_container_width=True)
 
-# GRÁFICO 4 - Tempo Total exceto Top 1
-df_temp = tempo_total.copy()
+# GRÁFICO 4 - Tempo Total por Frota (filtrado por período, exceto Top 1)
+df_temp = df_filtrado.groupby("Número de frota")["Tempo de Permanência(h)"].sum().reset_index()
+df_temp.columns = ["Frota", "Tempo (h)"]
 if not df_temp.empty:
     top1 = df_temp.sort_values("Tempo (h)", ascending=False).iloc[0]["Frota"]
     df_temp = df_temp[df_temp["Frota"] != top1]
