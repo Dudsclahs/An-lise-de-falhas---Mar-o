@@ -137,7 +137,7 @@ st.altair_chart(chart5, use_container_width=True)
 
 # GRÁFICO 6 - Tendência Diária de Entrada de OS
 # Agrupar corretamente por dia
-tendencia_entrada = df_filtrado[df_filtrado["Entrada"].notna()].copy()
+tendencia_entrada = df[df["Entrada"].notna() & (df["Origem"] == origem_selecionada)].copy()
 tendencia_entrada["Data de Entrada"] = tendencia_entrada["Entrada"].dt.floor("D")
 tendencia_entrada = tendencia_entrada.groupby("Data de Entrada").size().reset_index(name="Quantidade")
 
@@ -149,12 +149,11 @@ chart7 = alt.Chart(tendencia_entrada).mark_bar(color="green").encode(
 ).properties(width=800, height=400)
 
 # Exibir gráfico
-st.subheader("Gráfico 7 - Tendência Diária de Entrada de OS")
+st.subheader("Gráfico 6 - Tendência Diária de Entrada de OS")
 st.altair_chart(chart7, use_container_width=True)
 
 
 # GRÁFICO 7 - Frotas mais Frequentes (Descrição da Frota)
-tendencia_entrada = df[df["Entrada"].notna() & (df["Origem"] == origem_selecionada)].copy()
 if "Descrição  frota" in df_filtrado.columns:
     descricao_frota = df_filtrado["Descrição  frota"].value_counts().reset_index().head(10)
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
