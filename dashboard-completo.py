@@ -154,6 +154,7 @@ st.altair_chart(chart7, use_container_width=True)
 
 
 # GRÁFICO 7 - Frotas mais Frequentes (Descrição da Frota)
+tendencia_entrada = df[df["Entrada"].notna() & (df["Origem"] == origem_selecionada)].copy()
 if "Descrição  frota" in df_filtrado.columns:
     descricao_frota = df_filtrado["Descrição  frota"].value_counts().reset_index().head(10)
     descricao_frota.columns = ["Descrição da Frota", "Ocorrências"]
@@ -178,7 +179,7 @@ if "Tipo de manutenção" in df_filtrado.columns and not df_filtrado["Tipo de ma
     st.altair_chart(chart10, use_container_width=True)
 
 # GRÁFICO FINAL 9 - Tendência Mensal de Manutenções (não filtrado)
-tendencia_geral = df.groupby("Ano/Mes")["Boletim"].count().reset_index()
+tendencia_geral = df[df["Entrada"].notna()].groupby("Ano/Mes")["Boletim"].count().reset_index()
 tendencia_geral.columns = ["Ano/Mês", "Quantidade"]
 chart6 = alt.Chart(tendencia_geral).mark_line(point=True, color="green").encode(
     x=alt.X("Ano/Mês:T", title="Ano/Mês"),
