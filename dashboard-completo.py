@@ -56,7 +56,7 @@ def classificar_componente(texto):
 
 # Carrega os dados
 df = carregar_dados()
-df["Componente Detectado"] = df["Descrição do Trabalho / Observação (Ordem de serviço)"].apply(classificar_componente)
+df["Componente Detectado"] = df["Descrição do Trabalho/ Observação"].apply(classificar_componente)
 
 # Filtro lateral de período
 st.sidebar.header("Filtro de Período")
