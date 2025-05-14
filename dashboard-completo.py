@@ -7,7 +7,7 @@ st.title("Dashboard de Manutenção - Consolidado Final")
 
 @st.cache_data
 def carregar_dados():
-    df = pd.read_excel("analise_manutencao_completa.xlsx", sheet_name="Consolidado")
+    df = pd.read_excel("analise_manutencao_completa.xlsx", sheet_name="Planilha1")
     df.columns = df.columns.str.strip()
     df["Descrição do Trabalho / Observação (Ordem de serviço)"] = df["Descrição do Trabalho / Observação (Ordem de serviço)"].fillna("").str.lower()
 
