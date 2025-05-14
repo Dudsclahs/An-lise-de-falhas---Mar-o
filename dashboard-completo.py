@@ -9,7 +9,7 @@ st.title("Dashboard de Manutenção - Consolidado Final")
 def carregar_dados():
     df = pd.read_excel("analise_manutencao_completa.xlsx", sheet_name="Planilha1")
     df.columns = df.columns.str.strip()
-    df["Descrição do Trabalho / Observação (Ordem de serviço)"] = df["Descrição do Trabalho / Observação (Ordem de serviço)"].fillna("").str.lower()
+    df["Descrição do Trabalho/ Observação"] = df["Descrição do Trabalho/ Observação"].fillna("").str.lower()
 
     if "Local manutenção" in df.columns:
         df["Origem"] = df["Local manutenção"].str.upper().str.strip()
