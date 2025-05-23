@@ -33,14 +33,15 @@ def carregar_dados():
 
 def classificar_componente(texto):
     categorias = {
-        "Suspensão": ["mola", "molas", "molejo", "estabilizador", "pneu", "freio"],
-        "Motor": ["motor"],
+        "Suspensão": ["mola", "molas", "molejo", "estabilizador"],
+        "Pneu/Roda": ["cubo", "pneu", "pneus", "freio", "freios", "pastilha", "pinça", "disco"] 
+        "Motor": ["motor", "cabeçote", "bloco"],
         "Vazamento - Combustível": ["vazamento combustível", "vazamento de combustível", "vaz. combustível"],
         "Vazamento - Hidráulico": ["vazamento hidráulico", "vazamento de óleo hidráulico", "hidráulico"],
         "Vazamento - Óleo": ["vazamento óleo", "vazamento de óleo", "vaz. óleo"],
         "Rodantes": ["rodante", "esteira", "roletes", "coroa", "roda motriz"],
         "Elétrica": ["elétrica", "luz", "farol", "chicote", "bateria"],
-        "Mangueira (Vazamento)": ["mangueira"],
+        "Mangueira (Vazamento)": ["mangueira", "mangueiras", "mangote", ],
         "Rádio": ["radio", "rádio"],
         "Avaliar": ["avaliar", "verificação", "verificar"],
         "Falha Eletrônica / Painel": ["painel", "computador", "tela", "falha", "eletrônico", "sistema", "display", "luz espia", "injetor"],
