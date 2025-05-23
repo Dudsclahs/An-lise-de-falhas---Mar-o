@@ -34,7 +34,7 @@ def carregar_dados():
 def classificar_componente(texto):
     categorias = {
         "Suspensão": ["mola", "molas", "molejo", "estabilizador"],
-        "Pneu/Roda": ["cubo", "pneu", "pneus", "freio", "freios", "pastilha", "pinça", "disco"] 
+        "Pneu/Roda": ["cubo", "pneu", "pneus", "freio", "freios", "pastilha", "pinça", "disco"],
         "Motor": ["motor", "cabeçote", "bloco"],
         "Vazamento - Combustível": ["vazamento combustível", "vazamento de combustível", "vaz. combustível"],
         "Vazamento - Hidráulico": ["vazamento hidráulico", "vazamento de óleo hidráulico", "hidráulico"],
