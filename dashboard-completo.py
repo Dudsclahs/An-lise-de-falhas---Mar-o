@@ -42,6 +42,7 @@ def classificar_componente(texto):
         "Rodantes": ["rodante", "esteira", "roletes", "coroa", "roda motriz"],
         "Elétrica": ["elétrica", "luz", "farol", "chicote", "bateria"],
         "Mangueira (Vazamento)": ["mangueira", "mangueiras", "mangote", ],
+        "Caldeiraria": ["soldagem", "solda", "soldar", "caldeiraria", ],
         "Rádio": ["radio", "rádio"],
         "Avaliar": ["avaliar", "verificação", "verificar"],
         "Falha Eletrônica / Painel": ["painel", "computador", "tela", "falha", "eletrônico", "sistema", "display", "luz espia", "injetor"],
