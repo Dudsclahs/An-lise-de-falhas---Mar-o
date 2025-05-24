@@ -33,23 +33,27 @@ def carregar_dados():
 
 def classificar_componente(texto):
     categorias = {
-        "Suspensão": ["mola", "molas", "molejo", "estabilizador"],
-        "Pneu/Roda": ["cubo", "pneu", "pneus", "freio", "freios", "pastilha", "pinça", "disco"],
-        "Motor": ["motor", "cabeçote", "bloco"],
+        "Suspensão": ["mola", "molas", "molejo", "estabilizador", "amortecedor"],
+        "Pneu/Roda": ["cubo", "pneu", "pneus", "freio", "freios", "pastilha", "pinça", "disco", "cuica"],
+        "Motor": ["motor", "cabeçote", "bloco", "pressão de óleo"],
+        "Transmissão": ["não engata marcha", "não engata", "neutro", "transmissão", "cambio", "travou cambio", "embreagem"],
+        "Perda de potência": ["Perca de potência", "Perca de potencia", "perda de potência", "perda de potencia", "falta potência", "falta potencia"],
         "Vazamento - Combustível": ["vazamento combustível", "vazamento de combustível", "vaz. combustível"],
         "Vazamento - Hidráulico": ["vazamento hidráulico", "vazamento de óleo hidráulico", "hidráulico"],
         "Vazamento - Óleo": ["vazamento óleo", "vazamento de óleo", "vaz. óleo"],
         "Rodantes": ["rodante", "esteira", "roletes", "coroa", "roda motriz"],
-        "Elétrica": ["elétrica", "luz", "farol", "chicote", "bateria"],
+        "Elétrica": ["elétrica", "luz", "farol", "chicote", "bateria", "não liga", "sem partida"],
         "Mangueira (Vazamento)": ["mangueira", "mangueiras", "mangote", ],
         "Caldeiraria": ["soldagem", "solda", "soldar", "caldeiraria", ],
+        "Tanque de combustível": ["Tanque de combustivel", "Tanque de combustível", "Tag de combustível", ],
         "Rádio": ["radio", "rádio"],
-        "Avaliar": ["avaliar", "verificação", "verificar"],
+        "Faquinha": ["Trocar faquinha", "Girar faquinha", "Faquinha", "Atropelou faquinha"]
         "Falha Eletrônica / Painel": ["painel", "computador", "tela", "falha", "eletrônico", "sistema", "display", "luz espia", "injetor"],
         "Ar Condicionado": ["ar condicionado", "ac", "climatizador", "evaporador", "ventilador", "condensador", "compressor do ar"],
-        "Elevador": ["elevador", "elevatória", "plataforma"],
+        "Elevador": ["elevador", "elevatória", "plataforma", "Descarrilhou esteira elevador"],
         "Acumulador": ["acumulador"],
         "Despontador": ["despontador"]
+        "Avaliar": ["avaliar", "verificação", "verificar"],
     }
     for categoria, palavras in categorias.items():
         if any(p in texto for p in palavras):
