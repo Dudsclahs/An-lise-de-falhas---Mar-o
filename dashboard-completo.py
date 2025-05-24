@@ -47,12 +47,12 @@ def classificar_componente(texto):
         "Caldeiraria": ["soldagem", "solda", "soldar", "caldeiraria", ],
         "Tanque de combustível": ["Tanque de combustivel", "Tanque de combustível", "Tag de combustível", ],
         "Rádio": ["radio", "rádio"],
-        "Faquinha": ["Trocar faquinha", "Girar faquinha", "Faquinha", "Atropelou faquinha"]
+        "Faquinha": ["Trocar faquinha", "Girar faquinha", "Faquinha", "Atropelou faquinha"],
         "Falha Eletrônica / Painel": ["painel", "computador", "tela", "falha", "eletrônico", "sistema", "display", "luz espia", "injetor"],
         "Ar Condicionado": ["ar condicionado", "ac", "climatizador", "evaporador", "ventilador", "condensador", "compressor do ar"],
         "Elevador": ["elevador", "elevatória", "plataforma", "Descarrilhou esteira elevador"],
         "Acumulador": ["acumulador"],
-        "Despontador": ["despontador"]
+        "Despontador": ["despontador"],
         "Avaliar": ["avaliar", "verificação", "verificar"],
     }
     for categoria, palavras in categorias.items():
