@@ -12,15 +12,16 @@ def carregar_dados():
     df.columns = df.columns.str.strip()
     df["Descrição do Trabalho/ Observação"] = df["Descrição do Trabalho/ Observação"].fillna("").str.lower()
 
-    if "Local manutenção" in df.columns:
-        df["Origem"] = df["Local manutenção"].str.upper().str.strip()
-        df["Origem"] = df["Origem"].replace({
-            "MANUTENÇÃO CAMPO": "CAMPO",
-            "MANUTENÇÃO INTERNA": "INTERNA",
-            "MANUTENÇÃO TERCEIRO": "TERCEIRO"
-        })
-    else:
-        df["Origem"] = "NÃO INFORMADO"
+if "Local manutenção" in df.columns:
+    df["Origem"] = df["Local manutenção"].str.upper().str.strip()
+    df["Origem"] = df["Origem"].replace({
+        "MANUTENÇÃO CAMPO": "CAMPO",
+        "MANUTENÇÃO INTERNA": "INTERNA",
+        "MANUTENÇÃO TERCEIRO": "TERCEIRO"
+    })
+    df["Origem"] = df["Origem"].where(df["Origem"].isin(["CAMPO", "INTERNA", "TERCEIRO"]), "OUTROS")
+else:
+    df["Origem"] = "OUTROS"
 
     if "Entrada" in df.columns:
         df["Entrada"] = pd.to_datetime(df["Entrada"], errors="coerce")
