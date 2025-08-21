@@ -392,32 +392,45 @@ ml_threshold = st.sidebar.slider("Confiança mínima (beta)", 0.50, 0.90, 0.60, 
 antes_nc = int((df_clf["Comp_Rules"] == "Não Classificado").sum())
 
 if use_ml:
-    df_clf["Componente Detectado (final)"] = ml_reclass_optional(df_clf, "DE_SERVICO_N", "Comp_Rules", threshold=ml_threshold)
+    df_clf["Componente Detectado (final)"] = ml_reclass_optional(
+        df_clf, "DE_SERVICO_N", "Comp_Rules", threshold=ml_threshold
+    )
 else:
     df_clf["Componente Detectado (final)"] = df_clf["Comp_Rules"]
 
 depois_nc = int((df_clf["Componente Detectado (final)"] == "Não Classificado").sum())
 
+# ---- Tabela agregada com tipos corretos e ordenação explícita ----
 g4 = (
     df_clf["Componente Detectado (final)"]
+      .astype(str)
+      .replace({"": "Não Classificado"})
       .value_counts(dropna=False)
-      .reset_index(name="Ocorrências")
-      .rename(columns={"index": "Componente"})
+      .reset_index()
 )
-if debug: st.write("g4 head:", g4.head())
+g4.columns = ["Componente", "Ocorrências"]
+g4["Ocorrências"] = pd.to_numeric(g4["Ocorrências"], errors="coerce").fillna(0)
+
+# lista de ordenação (evita SortField e erros do Altair)
+ordem = g4.sort_values("Ocorrências", ascending=False)["Componente"].tolist()
 
 if g4.empty:
     st.info("Sem ocorrências por componente no período/seleção.")
 else:
-    st.caption(f"‘Não Classificado’: {antes_nc} → {depois_nc}  |  ML={'on' if use_ml else 'off'}  |  conf. ≥ {ml_threshold:.2f}")
-    st.altair_chart(
-        alt.Chart(g4).mark_bar().encode(
-            y=alt.Y("Componente:N", sort=alt.SortField(field="Ocorrências", order="descending")),
-            x=alt.X("Ocorrências:Q"),
-            tooltip=["Componente", "Ocorrências"]
-        ).properties(width=800, height=380),
-        use_container_width=True
+    st.caption(
+        f"‘Não Classificado’: {antes_nc} → {depois_nc}  |  ML={'on' if use_ml else 'off'}  |  conf. ≥ {ml_threshold:.2f}"
     )
+    chart_g4 = (
+        alt.Chart(g4)
+        .mark_bar()
+        .encode(
+            y=alt.Y("Componente:N", sort=ordem, title="Componente"),
+            x=alt.X("Ocorrências:Q", title="Ocorrências"),
+            tooltip=[alt.Tooltip("Componente:N"), alt.Tooltip("Ocorrências:Q")]
+        )
+        .properties(width=800, height=380)
+    )
+    st.altair_chart(chart_g4, use_container_width=True)
 
 # =========================
 # Gráfico 5 — Tendência diária (filtrado)
