@@ -281,30 +281,32 @@ if "CD_CLASMANU_DESC" in df_filtrado.columns:
         .astype(str)
         .replace({"": "Não informado"})
         .value_counts(dropna=False)
-        .reset_index(name="Quantidade")
-        .rename(columns={"index": "Descrição"})
+        .reset_index()
         .head(10)
     )
+    # padroniza nomes sem acento (evita KeyError)
+    g1.columns = ["Descricao", "Quantidade"]
     g1["Quantidade"] = pd.to_numeric(g1["Quantidade"], errors="coerce").fillna(0)
 
     if g1.empty:
         st.info("Sem dados para CD_CLASMANU no período/seleção.")
     else:
-        if debug: st.write("g1 head:", g1.head())
-        ordem = g1.sort_values("Quantidade", ascending=False)["Descrição"].tolist()
+        if debug:
+            st.write("g1 head:", g1.head())
+            st.write("g1 cols:", list(g1.columns))
+        # ordenação explícita por lista
+        ordem = g1.sort_values("Quantidade", ascending=False)["Descricao"].tolist()
         st.altair_chart(
             alt.Chart(g1).mark_bar(color=COLOR).encode(
-                y=alt.Y("Descrição:N", sort=ordem, title="Classe de Manutenção"),
+                y=alt.Y("Descricao:N", sort=ordem, title="Classe de Manutenção"),
                 x=alt.X("Quantidade:Q", title="Quantidade"),
-                tooltip=["Descrição", "Quantidade"]
+                tooltip=["Descricao", "Quantidade"]
             ).properties(width=800, height=380),
             use_container_width=True
         )
 else:
     st.info("Coluna CD_CLASMANU não encontrada.")
-python
-Copiar
-Editar
+
 # =========================
 # Gráfico 2 — Top 10 Número de OS por Equipamento (robusto)
 # =========================
