@@ -338,18 +338,20 @@ else:
 python
 Copiar
 Editar
+
+
 # =========================
-# Gráfico 3 — Top 10 Tempo Total de Permanência por Equipamento (h) (robusto)
+# Gráfico 3 — Top 10 Tempo Total de Permanência por Equipamento (h)
 # =========================
 st.subheader("Gráfico 3 - Top 10 Tempo Total de Permanência por Equipamento (h)")
 g3 = (
-    df_filtrado.assign(**{
-        "CD_EQUIPTO": df_filtrado["CD_EQUIPTO"].astype(str).str.replace(r"\.0$", "", regex=True)
-    })
+    df_filtrado.assign(
+        **{"CD_EQUIPTO": df_filtrado["CD_EQUIPTO"].astype(str).str.replace(r"\.0$", "", regex=True)}
+    )
     .dropna(subset=["Tempo de Permanência(h)"])
-    .assign(**{
-        "Tempo de Permanência(h)": pd.to_numeric(df_filtrado["Tempo de Permanência(h)"], errors="coerce")
-    })
+    .assign(
+        **{"Tempo de Permanência(h)": pd.to_numeric(df_filtrado["Tempo de Permanência(h)"], errors="coerce")}
+    )
     .groupby("CD_EQUIPTO", as_index=False)["Tempo de Permanência(h)"].sum()
     .sort_values("Tempo de Permanência(h)", ascending=False)
     .head(10)
