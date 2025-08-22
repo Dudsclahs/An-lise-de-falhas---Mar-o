@@ -7,7 +7,7 @@ import re, unicodedata
 # Config & título
 # =========================
 st.set_page_config(layout="wide")
-st.title("Dashboard de Manutenção — Somente NÃO PROGRAMADAS (OS)")
+st.title("Dashboard de Manutenção — Ordens de Serviço")
 
 # =========================
 # Utils
@@ -315,7 +315,7 @@ debug = st.sidebar.checkbox("Modo debug (mostrar heads)", value=False)
 # =========================
 # Gráfico 1 — Top 10 CD_CLASMANU
 # =========================
-st.subheader("Gráfico 1 - Top 10 Classificações (CD_CLASMANU) — NÃO programadas")
+st.subheader("Gráfico 1 - Top 10 - Classe de Manutenção")
 if "CD_CLASMANU" in df_filtrado.columns:
     g1 = df_filtrado["CD_CLASMANU"].value_counts(dropna=False).reset_index(name="Quantidade").head(10)
     g1.columns = ["CD_CLASMANU", "Quantidade"]
@@ -337,7 +337,7 @@ else:
 # =========================
 # Gráfico 2 — Top 10 OS por Equipamento
 # =========================
-st.subheader("Gráfico 2 - Top 10 Número de OS por Equipamento (CD_EQUIPTO) — NÃO programadas")
+st.subheader("Gráfico 2 - Top 10 Número de OS por Equipamento")
 g2 = df_filtrado["CD_EQUIPTO"].value_counts(dropna=False).reset_index(name="OS").head(10)
 g2.columns = ["CD_EQUIPTO", "OS"]
 if g2.empty:
@@ -356,7 +356,7 @@ else:
 # =========================
 # Gráfico 3 — Tempo Total (h) por Equipamento
 # =========================
-st.subheader("Gráfico 3 - Top 10 Tempo Total de Permanência por Equipamento (h) — NÃO programadas")
+st.subheader("Gráfico 3 - Top 10 Tempo Total de Permanência por Equipamento (h)")
 g3 = (
     df_filtrado.dropna(subset=["Tempo de Permanência(h)"])
       .groupby("CD_EQUIPTO", as_index=False)["Tempo de Permanência(h)"].sum()
@@ -435,7 +435,7 @@ else:
 # =========================
 # Gráfico 5 — Tendência diária (filtrado)
 # =========================
-st.subheader("Gráfico 5 - Tendência Diária de Entrada de OS — NÃO programadas")
+st.subheader("Gráfico 5 - Tendência Diária de Entrada de OS")
 if "ENTRADA" in df_filtrado.columns:
     tend = df_filtrado[df_filtrado["ENTRADA"].notna()].copy()
     if tend.empty:
@@ -458,7 +458,7 @@ else:
 # =========================
 # Gráfico 6 — Tendência mensal (GERAL, sem filtro de período)
 # =========================
-st.subheader("Gráfico 6 - Tendência Mensal de Manutenções — NÃO programadas (Geral)")
+st.subheader("Gráfico 6 - Tendência Mensal de Manutenções")
 g6 = df.dropna(subset=["Ano/Mes"]).groupby("Ano/Mes").size().reset_index(name="Quantidade")
 if debug: st.write("g6 head:", g6.head())
 if g6.empty:
