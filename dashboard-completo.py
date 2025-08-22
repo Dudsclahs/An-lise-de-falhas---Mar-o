@@ -272,74 +272,100 @@ df_filtrado = df[mask_periodo & mask_clas].copy()
 debug = st.sidebar.checkbox("Modo debug (mostrar heads)", value=False)
 
 # =========================
-# Gráfico 1 — Top 10 Classe de Manutenção (com descrição)
+# Gráfico 1 — Top 10 - Classe de Manutenção (robusto)
 # =========================
 st.subheader("Gráfico 1 - Top 10 - Classe de Manutenção")
 if "CD_CLASMANU_DESC" in df_filtrado.columns:
-    g1 = (df_filtrado["CD_CLASMANU_DESC"].astype(str)
-          .replace({"": "Não informado"})
-          .value_counts(dropna=False)
-          .reset_index(name="Quantidade")
-          .rename(columns={"index": "Descrição"})
-          .head(10))
+    g1 = (
+        df_filtrado["CD_CLASMANU_DESC"]
+        .astype(str)
+        .replace({"": "Não informado"})
+        .value_counts(dropna=False)
+        .reset_index(name="Quantidade")
+        .rename(columns={"index": "Descrição"})
+        .head(10)
+    )
+    g1["Quantidade"] = pd.to_numeric(g1["Quantidade"], errors="coerce").fillna(0)
+
     if g1.empty:
         st.info("Sem dados para CD_CLASMANU no período/seleção.")
     else:
         if debug: st.write("g1 head:", g1.head())
+        ordem = g1.sort_values("Quantidade", ascending=False)["Descrição"].tolist()
         st.altair_chart(
             alt.Chart(g1).mark_bar(color=COLOR).encode(
-                y=alt.Y("Descrição:N", sort=alt.SortField(field="Quantidade", order="descending")),
-                x=alt.X("Quantidade:Q"),
+                y=alt.Y("Descrição:N", sort=ordem, title="Classe de Manutenção"),
+                x=alt.X("Quantidade:Q", title="Quantidade"),
                 tooltip=["Descrição", "Quantidade"]
             ).properties(width=800, height=380),
             use_container_width=True
         )
 else:
     st.info("Coluna CD_CLASMANU não encontrada.")
-
+python
+Copiar
+Editar
 # =========================
-# Gráfico 2 — Top 10 OS por Equipamento (frota sem .0)
+# Gráfico 2 — Top 10 Número de OS por Equipamento (robusto)
 # =========================
 st.subheader("Gráfico 2 - Top 10 Número de OS por Equipamento")
-g2 = (df_filtrado["CD_EQUIPTO"].astype(str).str.replace(r"\.0$", "", regex=True)
-      .replace({"": "Não informado"})
-      .value_counts(dropna=False)
-      .reset_index(name="OS")
-      .rename(columns={"index": "CD_EQUIPTO"})
-      .head(10))
+g2 = (
+    df_filtrado["CD_EQUIPTO"]
+    .astype(str).str.replace(r"\.0$", "", regex=True)  # remove .0
+    .replace({"": "Não informado"})
+    .value_counts(dropna=False)
+    .reset_index(name="OS")
+    .rename(columns={"index": "CD_EQUIPTO"})
+    .head(10)
+)
+g2["OS"] = pd.to_numeric(g2["OS"], errors="coerce").fillna(0)
+
 if g2.empty:
     st.info("Sem dados de equipamentos no período/seleção.")
 else:
     if debug: st.write("g2 head:", g2.head())
+    ordem = g2.sort_values("OS", ascending=False)["CD_EQUIPTO"].tolist()
     st.altair_chart(
         alt.Chart(g2).mark_bar(color=COLOR).encode(
-            y=alt.Y("CD_EQUIPTO:N", sort=alt.SortField(field="OS", order="descending"), title="Equipamento"),
+            y=alt.Y("CD_EQUIPTO:N", sort=ordem, title="Equipamento"),
             x=alt.X("OS:Q", title="Quantidade de OS"),
             tooltip=[alt.Tooltip("CD_EQUIPTO:N", title="Equipamento"), "OS:Q"]
         ).properties(width=800, height=380),
         use_container_width=True
     )
-
+python
+Copiar
+Editar
 # =========================
-# Gráfico 3 — Tempo Total (h) por Equipamento (frota sem .0)
+# Gráfico 3 — Top 10 Tempo Total de Permanência por Equipamento (h) (robusto)
 # =========================
 st.subheader("Gráfico 3 - Top 10 Tempo Total de Permanência por Equipamento (h)")
 g3 = (
-    df_filtrado.assign(**{"CD_EQUIPTO": df_filtrado["CD_EQUIPTO"].astype(str).str.replace(r"\.0$", "", regex=True)})
-      .dropna(subset=["Tempo de Permanência(h)"])
-      .groupby("CD_EQUIPTO", as_index=False)["Tempo de Permanência(h)"].sum()
-      .sort_values("Tempo de Permanência(h)", ascending=False)
-      .head(10)
+    df_filtrado.assign(**{
+        "CD_EQUIPTO": df_filtrado["CD_EQUIPTO"].astype(str).str.replace(r"\.0$", "", regex=True)
+    })
+    .dropna(subset=["Tempo de Permanência(h)"])
+    .assign(**{
+        "Tempo de Permanência(h)": pd.to_numeric(df_filtrado["Tempo de Permanência(h)"], errors="coerce")
+    })
+    .groupby("CD_EQUIPTO", as_index=False)["Tempo de Permanência(h)"].sum()
+    .sort_values("Tempo de Permanência(h)", ascending=False)
+    .head(10)
 )
+
 if g3.empty:
     st.info("Sem dados de tempo de permanência no período/seleção.")
 else:
     if debug: st.write("g3 head:", g3.head())
+    ordem = g3.sort_values("Tempo de Permanência(h)", ascending=False)["CD_EQUIPTO"].tolist()
     st.altair_chart(
         alt.Chart(g3).mark_bar(color=COLOR).encode(
-            y=alt.Y("CD_EQUIPTO:N", sort=alt.SortField(field="Tempo de Permanência(h)", order="descending"), title="Equipamento"),
+            y=alt.Y("CD_EQUIPTO:N", sort=ordem, title="Equipamento"),
             x=alt.X("Tempo de Permanência(h):Q", title="Tempo (h)"),
-            tooltip=["CD_EQUIPTO", alt.Tooltip("Tempo de Permanência(h):Q", format=".2f")]
+            tooltip=[
+                alt.Tooltip("CD_EQUIPTO:N", title="Equipamento"),
+                alt.Tooltip("Tempo de Permanência(h):Q", title="Tempo (h)", format=".2f")
+            ]
         ).properties(width=800, height=380),
         use_container_width=True
     )
