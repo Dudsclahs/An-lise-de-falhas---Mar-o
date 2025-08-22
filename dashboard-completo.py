@@ -335,10 +335,6 @@ else:
         ).properties(width=800, height=380),
         use_container_width=True
     )
-python
-Copiar
-Editar
-
 
 # =========================
 # Gráfico 3 — Top 10 Tempo Total de Permanência por Equipamento (h)
