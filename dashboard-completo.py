@@ -9,8 +9,8 @@ import re, unicodedata
 st.set_page_config(layout="wide")
 st.title("Dashboard de Manutenção — Ordens de Serviço")
 
-# cor padrão dos gráficos
-COLOR = "#2E7D32"  # verde
+# cor padrão dos gráficos (verde)
+COLOR = "#2E7D32"
 
 # ====== Mapa de códigos -> descrição (CD_CLASMANU) ======
 CLASMANU_MAP = {
@@ -85,6 +85,17 @@ def carregar_dados(arquivo):
     # Ano/Mês
     df["Ano/Mes"] = df["ENTRADA"].dt.to_period("M").dt.to_timestamp() if "ENTRADA" in df.columns else pd.NaT
 
+    # Semana ISO (ano-semana) a partir de ENTRADA
+    if "ENTRADA" in df.columns:
+        iso = df["ENTRADA"].dt.isocalendar()  # year, week, day
+        df["ISO_ANO"] = iso["year"].astype("Int64")
+        df["ISO_SEMANA"] = iso["week"].astype("Int64")
+        df["ANO_SEMANA"] = df["ISO_ANO"].astype(str) + "-S" + df["ISO_SEMANA"].astype(str).str.zfill(2)
+    else:
+        df["ISO_ANO"] = pd.NA
+        df["ISO_SEMANA"] = pd.NA
+        df["ANO_SEMANA"] = pd.NA
+
     # Tempo de Permanência (h)
     if {"ENTRADA", "SAIDA"}.issubset(df.columns):
         tmp = (df["SAIDA"] - df["ENTRADA"]).dt.total_seconds() / 3600.0
@@ -116,23 +127,31 @@ PLANNED_COLS_CANDIDATES = [
     "CD_CLASMANU", "Tipo de manutenção", "TIPO_MANUTENCAO",
     "TP_MANU", "CLASSIFICACAO", "PLANO", "PLANO_MANUTENCAO", "TP_OS"
 ]
+# Regex mais abrangente e considerando descrição normalizada
 PLANNED_REGEX = re.compile(
-    r"(preventiv|primar|inspec|lubrif|preditiv|planejad|programad|plano\s*de\s*manut|\bpm\d*\b|\bpm\b|\brevis[aã]o)",
+    r"(preventiv|primar|preditiv|inspec|lubrif|planejad|programad|"
+    r"\bpm\d*\b|\bpm\b|\brevisao|"
+    r"execucao\s*plano|plano\s*de\s*manutencao|ordem\s*de\s*servico\s*programada)",
     flags=re.IGNORECASE
 )
 
 def aplicar_filtro_nao_programadas(df: pd.DataFrame):
     cols = [c for c in PLANNED_COLS_CANDIDATES if c in df.columns]
+
+    # texto vindo das colunas "de tipo" (se existirem) + SEMPRE a descrição normalizada
+    texto_desc = df.get("DE_SERVICO_N", "").fillna("")
     if cols:
-        texto_tipo = df[cols].astype(str).applymap(norm_txt).agg(" ".join, axis=1)
-        mask_planned = texto_tipo.str.contains(PLANNED_REGEX, na=False)
+        texto_cols = df[cols].astype(str).applymap(norm_txt).agg(" ".join, axis=1)
+        texto = (texto_cols.fillna("") + " " + texto_desc).str.strip()
     else:
-        mask_planned = df["DE_SERVICO_N"].str.contains(PLANNED_REGEX, na=False)
+        texto = texto_desc
+
+    mask_planned = texto.str.contains(PLANNED_REGEX, na=False)
     df_np = df[~mask_planned].copy()
     return df_np, mask_planned, cols
 
 # =========================
-# Classificador (regras + ML opcional) — usado no Gráfico 4
+# Classificador (regras + ML opcional) — usado no Gráfico 1
 # =========================
 def build_rules():
     rules_patterns = {
@@ -190,6 +209,7 @@ def classify_rules(texto: str) -> str:
     return "Não Classificado"
 
 def ml_reclass_optional(df_base: pd.DataFrame, col_txt: str, col_cat_in: str, threshold: float = 0.6):
+    """Reclassifica apenas 'Não Classificado' usando TF-IDF + Naive Bayes, se scikit-learn estiver disponível."""
     try:
         from sklearn.feature_extraction.text import TfidfVectorizer
         from sklearn.naive_bayes import MultinomialNB
@@ -242,18 +262,11 @@ st.sidebar.markdown(
 )
 
 # =========================
-# Filtros gerais
+# Filtros (apenas por Semana do Ano - ISO)
 # =========================
 st.sidebar.header("Filtros")
-hoje = pd.Timestamp.today().normalize()
-inicio_padrao = (df["ENTRADA"].min().date() if "ENTRADA" in df.columns and pd.notna(df["ENTRADA"]).any()
-                 else (hoje - pd.Timedelta(days=30)).date())
 
-# datas em DD/MM/AAAA
-data_inicio = st.sidebar.date_input("Data de Início", value=inicio_padrao, format="DD/MM/YYYY")
-data_fim    = st.sidebar.date_input("Data de Fim", value=hoje.date(), format="DD/MM/YYYY")
-
-# opções do filtro por classe: **mostrar descrição**, filtrar por código
+# filtro por classe (usa descrição no label, código no valor)
 codes_unique = sorted([c for c in df["CD_CLASMANU_CODE"].dropna().unique().tolist()])
 format_func = lambda c: CLASMANU_MAP.get(int(c), str(c))
 op_clas = st.sidebar.multiselect(
@@ -262,118 +275,42 @@ op_clas = st.sidebar.multiselect(
     default=codes_unique,
     format_func=format_func
 )
-
-mask_periodo = ((df["ENTRADA"] >= pd.to_datetime(data_inicio)) & (df["ENTRADA"] <= pd.to_datetime(data_fim))
-                ) if "ENTRADA" in df.columns else pd.Series(True, index=df.index)
 mask_clas = df["CD_CLASMANU_CODE"].isin(op_clas) if len(op_clas) > 0 else pd.Series(True, index=df.index)
 
-df_filtrado = df[mask_periodo & mask_clas].copy()
+# filtro por Semana do Ano (ISO)
+if "ISO_ANO" in df.columns and df["ISO_ANO"].notna().any():
+    anos_disp = sorted(df.loc[df["ISO_ANO"].notna(), "ISO_ANO"].unique().tolist())
+    ano_sel = st.sidebar.selectbox("Ano (ISO)", options=anos_disp, index=len(anos_disp)-1)
+
+    semanas_disp = sorted(
+        df.loc[(df["ISO_ANO"] == ano_sel) & df["ISO_SEMANA"].notna(), "ISO_SEMANA"].unique().tolist()
+    )
+    default_weeks = semanas_disp[-4:] if len(semanas_disp) >= 4 else semanas_disp
+
+    semanas_sel = st.sidebar.multiselect(
+        "Semana do Ano",
+        options=semanas_disp,
+        default=default_weeks,
+        help="Semana ISO de 1 a 53 (pode escolher várias)"
+    )
+
+    if len(semanas_sel) == 0:
+        mask_semana = pd.Series(False, index=df.index)
+    else:
+        mask_semana = (df["ISO_ANO"].eq(ano_sel)) & (df["ISO_SEMANA"].isin(semanas_sel))
+else:
+    st.sidebar.info("Sem datas de ENTRADA para calcular semanas.")
+    mask_semana = pd.Series(True, index=df.index)
+
+# aplica filtros (apenas semana + classe)
+df_filtrado = df[mask_semana & mask_clas].copy()
 
 debug = st.sidebar.checkbox("Modo debug (mostrar heads)", value=False)
 
 # =========================
-# Gráfico 1 — Top 10 - Classe de Manutenção (robusto)
+# Gráfico 1 — Ocorrências por Componente (Classificação aprimorada)
 # =========================
-st.subheader("Gráfico 1 - Top 10 - Classe de Manutenção")
-if "CD_CLASMANU_DESC" in df_filtrado.columns:
-    g1 = (
-        df_filtrado["CD_CLASMANU_DESC"]
-        .astype(str)
-        .replace({"": "Não informado"})
-        .value_counts(dropna=False)
-        .reset_index()
-        .head(10)
-    )
-    # padroniza nomes sem acento (evita KeyError)
-    g1.columns = ["Descricao", "Quantidade"]
-    g1["Quantidade"] = pd.to_numeric(g1["Quantidade"], errors="coerce").fillna(0)
-
-    if g1.empty:
-        st.info("Sem dados para CD_CLASMANU no período/seleção.")
-    else:
-        if debug:
-            st.write("g1 head:", g1.head())
-            st.write("g1 cols:", list(g1.columns))
-        # ordenação explícita por lista
-        ordem = g1.sort_values("Quantidade", ascending=False)["Descricao"].tolist()
-        st.altair_chart(
-            alt.Chart(g1).mark_bar(color=COLOR).encode(
-                y=alt.Y("Descricao:N", sort=ordem, title="Classe de Manutenção"),
-                x=alt.X("Quantidade:Q", title="Quantidade"),
-                tooltip=["Descricao", "Quantidade"]
-            ).properties(width=800, height=380),
-            use_container_width=True
-        )
-else:
-    st.info("Coluna CD_CLASMANU não encontrada.")
-
-# =========================
-# Gráfico 2 — Top 10 Número de OS por Equipamento (robusto)
-# =========================
-st.subheader("Gráfico 2 - Top 10 Número de OS por Equipamento")
-g2 = (
-    df_filtrado["CD_EQUIPTO"]
-    .astype(str).str.replace(r"\.0$", "", regex=True)  # remove .0
-    .replace({"": "Não informado"})
-    .value_counts(dropna=False)
-    .reset_index(name="OS")
-    .rename(columns={"index": "CD_EQUIPTO"})
-    .head(10)
-)
-g2["OS"] = pd.to_numeric(g2["OS"], errors="coerce").fillna(0)
-
-if g2.empty:
-    st.info("Sem dados de equipamentos no período/seleção.")
-else:
-    if debug: st.write("g2 head:", g2.head())
-    ordem = g2.sort_values("OS", ascending=False)["CD_EQUIPTO"].tolist()
-    st.altair_chart(
-        alt.Chart(g2).mark_bar(color=COLOR).encode(
-            y=alt.Y("CD_EQUIPTO:N", sort=ordem, title="Equipamento"),
-            x=alt.X("OS:Q", title="Quantidade de OS"),
-            tooltip=[alt.Tooltip("CD_EQUIPTO:N", title="Equipamento"), "OS:Q"]
-        ).properties(width=800, height=380),
-        use_container_width=True
-    )
-
-# =========================
-# Gráfico 3 — Top 10 Tempo Total de Permanência por Equipamento (h)
-# =========================
-st.subheader("Gráfico 3 - Top 10 Tempo Total de Permanência por Equipamento (h)")
-g3 = (
-    df_filtrado.assign(
-        **{"CD_EQUIPTO": df_filtrado["CD_EQUIPTO"].astype(str).str.replace(r"\.0$", "", regex=True)}
-    )
-    .dropna(subset=["Tempo de Permanência(h)"])
-    .assign(
-        **{"Tempo de Permanência(h)": pd.to_numeric(df_filtrado["Tempo de Permanência(h)"], errors="coerce")}
-    )
-    .groupby("CD_EQUIPTO", as_index=False)["Tempo de Permanência(h)"].sum()
-    .sort_values("Tempo de Permanência(h)", ascending=False)
-    .head(10)
-)
-
-if g3.empty:
-    st.info("Sem dados de tempo de permanência no período/seleção.")
-else:
-    if debug: st.write("g3 head:", g3.head())
-    ordem = g3.sort_values("Tempo de Permanência(h)", ascending=False)["CD_EQUIPTO"].tolist()
-    st.altair_chart(
-        alt.Chart(g3).mark_bar(color=COLOR).encode(
-            y=alt.Y("CD_EQUIPTO:N", sort=ordem, title="Equipamento"),
-            x=alt.X("Tempo de Permanência(h):Q", title="Tempo (h)"),
-            tooltip=[
-                alt.Tooltip("CD_EQUIPTO:N", title="Equipamento"),
-                alt.Tooltip("Tempo de Permanência(h):Q", title="Tempo (h)", format=".2f")
-            ]
-        ).properties(width=800, height=380),
-        use_container_width=True
-    )
-
-# =========================
-# Gráfico 4 — Ocorrências por Componente (Classificação aprimorada)
-# =========================
-st.subheader("Gráfico 4 - Ocorrências por Componente — NÃO programadas (classificação aprimorada)")
+st.subheader("Gráfico 1 - Ocorrências por Componente — NÃO programadas (classificação aprimorada)")
 
 # 1) Regras
 df_clf = df_filtrado.copy()
@@ -386,7 +323,9 @@ ml_threshold = st.sidebar.slider("Confiança mínima (beta)", 0.50, 0.90, 0.60, 
 antes_nc = int((df_clf["Comp_Rules"] == "Não Classificado").sum())
 
 if use_ml:
-    df_clf["Componente Detectado (final)"] = ml_reclass_optional(df_clf, "DE_SERVICO_N", "Comp_Rules", threshold=ml_threshold)
+    df_clf["Componente Detectado (final)"] = ml_reclass_optional(
+        df_clf, "DE_SERVICO_N", "Comp_Rules", threshold=ml_threshold
+    )
 else:
     df_clf["Componente Detectado (final)"] = df_clf["Comp_Rules"]
 
@@ -414,13 +353,106 @@ else:
     st.altair_chart(chart_g4, use_container_width=True)
 
 # =========================
+# Gráfico 2 — Top 10 - Classe de Manutenção
+# =========================
+st.subheader("Gráfico 2 - Top 10 - Classe de Manutenção")
+if "CD_CLASMANU_DESC" in df_filtrado.columns:
+    g1 = (
+        df_filtrado["CD_CLASMANU_DESC"]
+        .astype(str)
+        .replace({"": "Não informado"})
+        .value_counts(dropna=False)
+        .reset_index()
+        .head(10)
+    )
+    g1.columns = ["Descricao", "Quantidade"]
+    g1["Quantidade"] = pd.to_numeric(g1["Quantidade"], errors="coerce").fillna(0)
+
+    if g1.empty:
+        st.info("Sem dados para CD_CLASMANU no período/seleção.")
+    else:
+        if debug: st.write("g1 head:", g1.head())
+        ordem = g1.sort_values("Quantidade", ascending=False)["Descricao"].tolist()
+        st.altair_chart(
+            alt.Chart(g1).mark_bar(color=COLOR).encode(
+                y=alt.Y("Descricao:N", sort=ordem, title="Classe de Manutenção"),
+                x=alt.X("Quantidade:Q", title="Quantidade"),
+                tooltip=["Descricao", "Quantidade"]
+            ).properties(width=800, height=380),
+            use_container_width=True
+        )
+else:
+    st.info("Coluna CD_CLASMANU não encontrada.")
+
+# =========================
+# Gráfico 3 — Top 10 Número de OS por Equipamento
+# =========================
+st.subheader("Gráfico 3 - Top 10 Número de OS por Equipamento")
+g2 = (
+    df_filtrado["CD_EQUIPTO"]
+    .astype(str).str.replace(r"\.0$", "", regex=True)
+    .replace({"": "Não informado"})
+    .value_counts(dropna=False)
+    .reset_index(name="OS")
+    .rename(columns={"index": "CD_EQUIPTO"})
+    .head(10)
+)
+g2["OS"] = pd.to_numeric(g2["OS"], errors="coerce").fillna(0)
+
+if g2.empty:
+    st.info("Sem dados de equipamentos no período/seleção.")
+else:
+    if debug: st.write("g2 head:", g2.head())
+    ordem = g2.sort_values("OS", ascending=False)["CD_EQUIPTO"].tolist()
+    st.altair_chart(
+        alt.Chart(g2).mark_bar(color=COLOR).encode(
+            y=alt.Y("CD_EQUIPTO:N", sort=ordem, title="Equipamento"),
+            x=alt.X("OS:Q", title="Quantidade de OS"),
+            tooltip=[alt.Tooltip("CD_EQUIPTO:N", title="Equipamento"), "OS:Q"]
+        ).properties(width=800, height=380),
+        use_container_width=True
+    )
+
+# =========================
+# Gráfico 4 — Top 10 Tempo Total de Permanência por Equipamento (h)
+# =========================
+st.subheader("Gráfico 4 - Top 10 Tempo Total de Permanência por Equipamento (h)")
+g3_base = df_filtrado.copy()
+g3_base["CD_EQUIPTO"] = g3_base["CD_EQUIPTO"].astype(str).str.replace(r"\.0$", "", regex=True)
+g3_base["Tempo de Permanência(h)"] = pd.to_numeric(g3_base["Tempo de Permanência(h)"], errors="coerce")
+
+g3 = (
+    g3_base.dropna(subset=["Tempo de Permanência(h)"])
+    .groupby("CD_EQUIPTO", as_index=False)["Tempo de Permanência(h)"].sum()
+    .sort_values("Tempo de Permanência(h)", ascending=False)
+    .head(10)
+)
+
+if g3.empty:
+    st.info("Sem dados de tempo de permanência no período/seleção.")
+else:
+    if debug: st.write("g3 head:", g3.head())
+    ordem = g3.sort_values("Tempo de Permanência(h)", ascending=False)["CD_EQUIPTO"].tolist()
+    st.altair_chart(
+        alt.Chart(g3).mark_bar(color=COLOR).encode(
+            y=alt.Y("CD_EQUIPTO:N", sort=ordem, title="Equipamento"),
+            x=alt.X("Tempo de Permanência(h):Q", title="Tempo (h)"),
+            tooltip=[
+                alt.Tooltip("CD_EQUIPTO:N", title="Equipamento"),
+                alt.Tooltip("Tempo de Permanência(h):Q", title="Tempo (h)", format=".2f")
+            ]
+        ).properties(width=800, height=380),
+        use_container_width=True
+    )
+
+# =========================
 # Gráfico 5 — Tendência diária (filtrado)
 # =========================
 st.subheader("Gráfico 5 - Tendência Diária de Entrada de OS")
 if "ENTRADA" in df_filtrado.columns:
     tend = df_filtrado[df_filtrado["ENTRADA"].notna()].copy()
     if tend.empty:
-        st.info("Sem dados de ENTRADA no período/seleção.")
+        st.info("Sem dados de ENTRADA nas semanas selecionadas.")
     else:
         tend["Data de Entrada"] = tend["ENTRADA"].dt.floor("D")
         g5 = tend.groupby("Data de Entrada").size().reset_index(name="Quantidade")
