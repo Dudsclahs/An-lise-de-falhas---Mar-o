@@ -12,6 +12,26 @@ st.title("Dashboard de Manutenção — Ordens de Serviço")
 # cor padrão dos gráficos (verde)
 COLOR = "#2E7D32"
 
+# --- categorias novas de vazamento (nomes padronizados) ---
+LEAK_FUEL = "Vazamento – Combustível"
+LEAK_OIL  = "Vazamento – Óleo (geral)"
+LEAK_HOSE = "Vazamento – Mangueira"
+
+# nomes “bonitos” no gráfico de componentes
+DISPLAY_RENAME = {
+    LEAK_OIL:  "Vaz. Óleo (geral)",
+    LEAK_FUEL: "Vaz. Combustível",
+    LEAK_HOSE: "Vaz. Mangueira",
+
+    "Pneus/Rodagem": "Rodagem (Pneus)",
+    "Estrutural/Chassi": "Estrutural / Chassi",
+    "Corte/Facão & Plataforma": "Plataforma / Corte",
+    "Cabine/Carroceria": "Carroceria / Cabine",
+    "Falha Eletrônica / Painel": "Eletrônica / Painel",
+    "Ar Condicionado": "Ar Condicionado (AC)",
+    "Transmissão / Câmbio": "Transmissão / Câmbio",
+}
+
 # ====== Mapa de códigos -> descrição (CD_CLASMANU) ======
 CLASMANU_MAP = {
     12: "CORRETIVA",
@@ -127,7 +147,7 @@ PLANNED_COLS_CANDIDATES = [
     "CD_CLASMANU", "Tipo de manutenção", "TIPO_MANUTENCAO",
     "TP_MANU", "CLASSIFICACAO", "PLANO", "PLANO_MANUTENCAO", "TP_OS"
 ]
-# Regex mais abrangente e considerando descrição normalizada
+# Regex abrangente (considera descrição normalizada)
 PLANNED_REGEX = re.compile(
     r"(preventiv|primar|preditiv|inspec|lubrif|planejad|programad|"
     r"\bpm\d*\b|\bpm\b|\brevisao|"
@@ -155,6 +175,8 @@ def aplicar_filtro_nao_programadas(df: pd.DataFrame):
 # =========================
 def build_rules():
     rules_patterns = {
+        # Não precisamos criar regras para os novos "vazamentos";
+        # a decisão acontece na classify_rules com prioridade.
         "Estrutural/Chassi": [
             r"\bsolda(r|s|)\b|\bsoldar\b",
             r"\bparafuso(s)?\b", r"\bsuporte(s)?\b", r"\bpino(s)?\b",
@@ -167,9 +189,6 @@ def build_rules():
         ],
         "Cabine/Carroceria": [r"\bparabris|vidro|retrovisor|escada|porta(s)?\b", r"\bcap[oô]\b", r"\bgrade\b"],
         "Tanque/Combustível (sem vazamento)": [r"\btanque\b", r"\bcinta do tanque\b", r"\bboia do tanque\b"],
-        "Vazamento - Óleo": [r"\bvaz[a-z]*\b.*\boleo\b", r"\boleo\b.*\bvaz[a-z]*\b", r"\bretentor\b", r"\bvedador(es)?\b"],
-        "Vazamento - Hidráulico": [r"\bvaz[a-z]*\b.*\bhidraul", r"\bhidraul.*\bvaz[a-z]*\b", r"\bcilindro hidraul", r"\bbomba hidraul"],
-        "Vazamento - Combustível": [r"\bvaz[a-z]*\b.*\b(diesel|combust|gasol)", r"\b(diesel|combust|gasol).*\bvaz[a-z]*\b"],
         "Freio": [r"\bfreio(s)?\b", r"\bpastilh", r"\blona(s)?\b", r"\bdisco(s)?\b", r"\btambor(es)?\b", r"\bpin[cç]a\b", r"\bcilindro mestre\b", r"\bfluido de freio\b"],
         "Suspensão": [r"\bamortecedor(es)?\b", r"\bmola(s)?\b", r"\bfeixe de mola\b", r"\bbucha(s)?\b", r"\bbandeja\b", r"\bpivo\b", r"\bestabilizador\b"],
         "Direção": [r"\b(caixa|sistema) de dire[cç][aã]o\b", r"\bterminal de dire[cç][aã]o\b", r"\bbarra de dire[cç][aã]o\b", r"\borbitrol\b"],
@@ -182,30 +201,58 @@ def build_rules():
         "Transmissão / Câmbio": [r"\b(cambio|transmiss[aã]o)\b", r"\bembreagem\b", r"\b(diferencial|planet[aá]ria|coroa|pinhao)\b", r"\bcarda?n\b"],
         "Motor": [r"\bmotor(?!ista)\b", r"\bcabecote\b", r"\bpist[aã]o\b", r"\bbiela\b", r"\bbronzina\b", r"\bbomba de oleo\b", r"\barrefe(c|ç)edor\b", r"\bturbina|turbo\b", r"\bcorreia dent"],
         "Mangueira (Vazamento)": [r"\bmangueira(s)?\b", r"\bflex[ií]vel\b"],
-        "Rádio": [r"\br[aá]dio\b"],
-        "Elevador": [r"\belevador|elevat[oó]ria|plataforma\b"],
-        "Acumulador": [r"\bacumulador\b"],
-        "Despontador": [r"\bdespontador\b"],
-        "Avaliar": [r"\bavaliar|verificar|inspecionar|chec(ar|agem)|vistoriar\b"],
+        # antigas categorias de vazamento (deixamos para mapear para as novas quando ocorrer)
+        "Vazamento - Óleo": [r"\bretentor\b", r"\bvedador(es)?\b"],
+        "Vazamento - Hidráulico": [r"\bcilindro hidraul", r"\bbomba hidraul"],
+        "Vazamento - Combustível": [r"\b(bomba|filtro)\s*(de)?\s*(combust|diesel)", r"\blinha\s*de\s*(combust|diesel)"],
     }
     return {cat: [re.compile(p) for p in pats] for cat, pats in rules_patterns.items()}
 
 _RULES = build_rules()
 
 def classify_rules(texto: str) -> str:
+    """Classificador por regras com prioridade para as 3 novas categorias de vazamento."""
     t = norm_txt(texto)
     if not t:
         return "Não Classificado"
-    if re.search(r"\bvaz[a-z]*\b", t):
-        if re.search(r"\bhidraul", t):  return "Vazamento - Hidráulico"
-        if re.search(r"\boleo\b", t):   return "Vazamento - Óleo"
-        if re.search(r"\b(diesel|combust|gasol)\b", t): return "Vazamento - Combustível"
+
+    # sinais de vazamento/rompimento
+    has_leak = bool(re.search(r"\bvaz[a-z]*\b", t))
+    has_break = bool(re.search(r"\b(romp|fur(ad|o)|estour|trinc|rachad)\b", t))
+
+    # combustível (diesel/gasolina/etanol/combust…)
+    has_fuel = bool(re.search(r"\b(diesel|combust|gasol|etanol)\b", t))
+
+    # mangueira / flexível / crimpagem / engate rápido
+    has_hose = bool(re.search(r"\bmangueir|flexivel|crimp|engate\s*rapid", t))
+    has_hose_problem = has_hose and (has_leak or has_break)
+
+    # --- decisão das 3 categorias de vazamento ---
+    if has_hose_problem:
+        return LEAK_HOSE
+    if has_leak and has_fuel:
+        return LEAK_FUEL
+    if has_leak:
+        # todo vazamento que não for combustível/mangueira cai aqui (óleo em geral)
+        return LEAK_OIL
+
+    # --- demais regras (já existentes) ---
     for categoria, pats in _RULES.items():
         for pat in pats:
             if pat.search(t):
+                # mapear categorias antigas para as novas quando aplicável
+                if categoria in ("Vazamento - Óleo", "Vazamento - Hidráulico"):
+                    return LEAK_OIL
+                if categoria == "Vazamento - Combustível":
+                    return LEAK_FUEL
+                if categoria == "Mangueira (Vazamento)":
+                    return LEAK_HOSE
                 return categoria
+
+    # fallback: menção clara a motor
     if re.search(r"\bmotor(?!ista)\b", t):
         return "Motor"
+
     return "Não Classificado"
 
 def ml_reclass_optional(df_base: pd.DataFrame, col_txt: str, col_cat_in: str, threshold: float = 0.6):
@@ -262,7 +309,7 @@ st.sidebar.markdown(
 )
 
 # =========================
-# Filtros (apenas por Semana do Ano - ISO)
+# Filtros (por Semana do Ano - ISO e por classe)
 # =========================
 st.sidebar.header("Filtros")
 
@@ -337,18 +384,38 @@ g4 = (
 )
 g4.columns = ["Componente", "Ocorrências"]
 g4["Ocorrências"] = pd.to_numeric(g4["Ocorrências"], errors="coerce").fillna(0)
-ordem = g4.sort_values("Ocorrências", ascending=False)["Componente"].tolist()
+
+# nome “bonito” só para exibir
+g4["Componente_Display"] = g4["Componente"].map(DISPLAY_RENAME).fillna(g4["Componente"])
+
+# manter a ordenação por quantidade, mas usando o nome de exibição no eixo
+ordem_original = g4.sort_values("Ocorrências", ascending=False)["Componente"].tolist()
+ordem_display = [DISPLAY_RENAME.get(c, c) for c in ordem_original]
 
 if g4.empty:
     st.info("Sem ocorrências por componente no período/seleção.")
 else:
-    st.caption(f"‘Não Classificado’: {antes_nc} → {depois_nc}  |  ML={'on' if use_ml else 'off'}  |  conf. ≥ {ml_threshold:.2f}")
+    st.caption(
+        f"‘Não Classificado’: {antes_nc} → {depois_nc}  |  ML={'on' if use_ml else 'off'}  |  conf. ≥ {ml_threshold:.2f}"
+    )
     chart_g4 = (
-        alt.Chart(g4).mark_bar(color=COLOR).encode(
-            y=alt.Y("Componente:N", sort=ordem, title="Componente"),
+        alt.Chart(g4)
+        .mark_bar(color=COLOR)
+        .encode(
+            y=alt.Y(
+                "Componente_Display:N",
+                sort=ordem_display,
+                title="Componente",
+                axis=alt.Axis(labelLimit=2000)  # evita “…” nas labels
+            ),
             x=alt.X("Ocorrências:Q", title="Ocorrências"),
-            tooltip=[alt.Tooltip("Componente:N"), alt.Tooltip("Ocorrências:Q")]
-        ).properties(width=800, height=380)
+            tooltip=[
+                alt.Tooltip("Componente_Display:N", title="Componente"),
+                alt.Tooltip("Componente:N", title="Nome original"),
+                alt.Tooltip("Ocorrências:Q", title="Ocorrências"),
+            ],
+        )
+        .properties(width=800, height=380)
     )
     st.altair_chart(chart_g4, use_container_width=True)
 
